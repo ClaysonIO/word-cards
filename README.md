@@ -25,6 +25,23 @@ packaged as an Android app with [Capacitor](https://capacitorjs.com).
   whether voice is ready.
 - Progress is stored on the device.
 
+### Kid lock
+
+Tap **🔒 Kid lock** at the bottom of the home screen before handing the phone
+to a child. The app uses Android *screen pinning*, so Home, Recents and the
+notification shade stop working and the child can't switch apps.
+
+- The first time, you choose a grown-up PIN (4–8 numbers) and Android asks
+  "Pin this app?" once.
+- To unlock, tap **🔓 Unlock (grown-ups)** on the home screen and enter the PIN.
+  **Change PIN** is next to **Reset progress** while the app is unlocked.
+  **Reset progress** is hidden while the app is locked.
+- Android always keeps its own way out: holding Back + Overview (or swipe up
+  and hold with gesture navigation). Turn on **Settings → Security → App
+  pinning → Ask for PIN before unpinning** so that way out needs the phone's
+  PIN. With that setting on, the phone also locks when you unlock from the app.
+- Forgot the PIN? Unpin with the Android gesture, then use **Change PIN**.
+
 ### Practice rounds (not "done for the day")
 
 The first round goes through every word in the set. After that each round is

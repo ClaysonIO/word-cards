@@ -398,6 +398,85 @@
     $("gotIt").hidden = voiceOn();
   }
 
+  // ---------- Kid lock (Android screen pinning) ----------
+  // Locking pins the app so Home / Recents can't be used to leave it.
+  // Unlocking needs the grown-up PIN chosen the first time the lock is used.
+  const KidLock = plugin("KidLock");
+  let kidLocked = false;
+
+  // Shows the PIN dialog. check(pin) returns an error message to keep it open,
+  // or nothing to accept. Resolves with the PIN, or null when cancelled.
+  function askPin(title, hint, check) {
+    return new Promise((resolve) => {
+      const input = $("pinInput");
+      $("pinTitle").textContent = title;
+      $("pinHint").textContent = hint || "";
+      $("pinError").textContent = "";
+      input.value = "";
+      $("pinDialog").hidden = false;
+      input.focus();
+      const close = (result) => {
+        $("pinDialog").hidden = true;
+        $("pinForm").onsubmit = null;
+        $("pinCancel").onclick = null;
+        input.blur();
+        resolve(result);
+      };
+      $("pinForm").onsubmit = (e) => {
+        e.preventDefault();
+        const error = check(input.value);
+        if (!error) { close(input.value); return; }
+        $("pinError").textContent = error;
+        input.value = "";
+        input.focus();
+      };
+      $("pinCancel").onclick = () => close(null);
+    });
+  }
+
+  const pinRule = (pin) => (/^[0-9]{4,8}$/.test(pin) ? "" : "Use 4 to 8 numbers.");
+
+  async function choosePin() {
+    const pin = await askPin("Choose a grown-up PIN",
+      "You'll need it to unlock the app. For extra safety, also turn on " +
+      "\"Ask for PIN before unpinning\" in Android Settings → Security → App pinning.",
+      pinRule);
+    if (pin === null) return false;
+    const again = await askPin("Type the PIN again", "", (p) => (p === pin ? "" : "That doesn't match. Try again."));
+    if (again === null) return false;
+    settings.kidPin = pin;
+    saveSettings();
+    return true;
+  }
+
+  function updateKidLock() {
+    const b = $("kidLock");
+    b.hidden = !KidLock;
+    b.textContent = kidLocked ? "🔓 Unlock (grown-ups)" : "🔒 Kid lock";
+    b.classList.toggle("locked", kidLocked);
+    $("reset").hidden = kidLocked;
+    $("changePin").hidden = kidLocked || !KidLock || !settings.kidPin;
+  }
+
+  async function refreshKidLock() {
+    if (!KidLock) return;
+    try { kidLocked = !!(await KidLock.status()).locked; } catch (_) { /* ignore */ }
+    updateKidLock();
+  }
+
+  async function toggleKidLock() {
+    await refreshKidLock();
+    if (kidLocked) {
+      const pin = await askPin("Grown-up PIN", "", (p) => (p === settings.kidPin ? "" : "Wrong PIN."));
+      if (pin === null) return;
+      try { await KidLock.unlock(); } catch (e) { alert(e && e.message); }
+    } else {
+      if (!settings.kidPin && !(await choosePin())) return;
+      try { await KidLock.lock(); } catch (e) { alert(e && e.message); }
+    }
+    refreshKidLock();
+  }
+
   // ---------- Screens ----------
   function show(name) {
     for (const s of ["home", "study", "done"]) $(s).hidden = s !== name;
@@ -427,6 +506,7 @@
     }
     $("voiceStatus").textContent = voice.status;
     show("home");
+    refreshKidLock();
   }
 
   // ---------- Wiring ----------
@@ -448,6 +528,8 @@
     updateMicToggle();
     if (voiceOn()) listen(); else { pauseListening(); $("listen").classList.add("idle"); }
   });
+  $("kidLock").addEventListener("click", toggleKidLock);
+  $("changePin").addEventListener("click", choosePin);
   $("reset").addEventListener("click", () => {
     if (confirm("Erase all progress and start over?")) {
       state = { cards: {}, rounds: {}, turn: 0 };
@@ -458,14 +540,21 @@
 
   if (isNative) {
     const App = plugin("App");
-    // Android back button: go home instead of closing the app.
+    // Android back button: go home instead of closing the app
+    // (and never close it while kid lock is on).
     App.addListener("backButton", () => {
-      if (!$("home").hidden) App.exitApp(); else renderHome();
+      if (!$("pinDialog").hidden) $("pinCancel").click();
+      else if ($("home").hidden) renderHome();
+      else if (!kidLocked) App.exitApp();
     });
     // Release the microphone in the background, pick up again on return.
     App.addListener("pause", () => pauseListening());
-    App.addListener("resume", () => listen());
+    App.addListener("resume", () => { listen(); refreshKidLock(); });
   }
+
+  // Android can also pin/unpin from outside the app (its "Pin this app?"
+  // prompt, or the system unpin gesture), so keep the home screen in sync.
+  if (KidLock) setInterval(() => { if (!$("home").hidden) refreshKidLock(); }, 1500);
 
   window.WORD_SETS.forEach(preloadSet);
   renderHome();
