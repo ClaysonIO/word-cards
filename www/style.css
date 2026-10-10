@@ -47,6 +47,12 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   right: max(16px, env(safe-area-inset-right));
 }
 
+.home-settings {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+}
+
 #home .title { padding: 0 72px; text-align: center; }
 
 /* Profiles: one chip per reader, tap "+" to add */
@@ -103,6 +109,46 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   opacity: .45;
   text-decoration: underline;
 }
+
+/* ---------- Settings (current reader) ---------- */
+.settings-title { font-size: 1.8rem; font-weight: 400; margin: 0 12px; text-align: center; }
+/* Keep the header in one row, also in landscape (where the study screen's stacks) */
+#settings .topbar { width: 100%; max-width: 560px; flex-direction: row; justify-content: space-between; }
+#settings .icon-spacer { display: block; }
+.settings {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+.setting {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 14px 16px 16px;
+  background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+}
+.setting[hidden], .setting-btn[hidden] { display: none; }
+#settings.kid-locked .grown { display: none; }
+.setting-label { font-size: 1rem; opacity: .6; }
+.setting-btn, .seg-btn {
+  font-size: 1.4rem;
+  padding: 10px 18px;
+  background: var(--bg);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  box-shadow: 0 4px 0 rgba(0,0,0,.2);
+}
+.setting-btn:active, .seg-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.setting-btn.danger { color: #b42318; border-color: #b42318; }
+.seg { display: flex; gap: 10px; }
+.seg-btn { flex: 1; }
+.seg-btn.active { background: var(--ink); color: var(--bg); }
 
 /* Kid lock */
 .lock-btn {
@@ -410,36 +456,20 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   .fox svg, .fox svg * { animation-iteration-count: 1 !important; }
 }
 
-/* Home: the reader's fox, tap to pick another */
-.fox-btn {
-  display: block;
-  width: 84px;
-  height: 98px;
-  margin: 0 auto 16px;
-  padding: 4px;
-  background: #fff;
-  border: 3px solid var(--ink);
-  border-radius: 18px;
-  box-shadow: 0 4px 0 rgba(0,0,0,.2);
-}
-.fox-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
-.fox-btn svg { display: block; width: 100%; height: 100%; }
-
-/* Fox picker: every style, waiting excitedly */
-.fox-box { max-width: 560px; text-align: center; }
+/* Fox choices on the settings screen, every style waiting excitedly */
 .fox-choices {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 12px;
-  margin-bottom: 12px;
 }
 .fox-choice {
   display: flex;
+  justify-content: flex-end;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   padding: 10px 6px 8px;
-  background: #fff;
+  background: var(--bg);
   border: 3px solid var(--ink);
   border-radius: 16px;
   font-size: 1.1rem;
@@ -473,7 +503,6 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   .icon-spacer { width: 52px; }
   .profiles { margin-bottom: 10px; }
   .profile-btn { font-size: 1.2rem; padding: 4px 16px; }
-  .fox-btn { width: 60px; height: 70px; margin-bottom: 8px; }
   .fox-choice svg { width: 56px; }
 }
 

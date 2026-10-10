@@ -252,30 +252,13 @@
     if ($("ember").dataset.avatar === a.id) return;
     $("ember").dataset.avatar = a.id;
     $("ember").innerHTML = foxSvg(a);
-    $("foxBtn").innerHTML = foxSvg(a);
   }
 
-  function pickFox() {
-    const box = $("foxChoices");
-    box.innerHTML = "";
-    const close = () => { $("foxDialog").hidden = true; box.innerHTML = ""; };
-    for (const a of window.AVATARS) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "fox-choice fox wait";
-      b.classList.toggle("active", a === avatar());
-      b.setAttribute("aria-pressed", String(a === avatar()));
-      b.innerHTML = `${foxSvg(a)}<span>${a.name}</span>`;
-      b.onclick = () => {
-        currentProfile().avatar = a.id;
-        saveProfiles();
-        drawFox();
-        close();
-      };
-      box.appendChild(b);
-    }
-    $("foxCancel").onclick = close;
-    $("foxDialog").hidden = false;
+  function setFox(id) {
+    currentProfile().avatar = id;
+    saveProfiles();
+    drawFox();
+    renderSettings();
   }
 
   function ember(mood) {
@@ -530,13 +513,9 @@
     b.hidden = !KidLock;
     b.textContent = kidLocked ? "🔓 Unlock (grown-ups)" : "🔒 Kid lock";
     b.classList.toggle("locked", kidLocked);
-    $("reset").hidden = kidLocked;
-    $("removeProfile").hidden = kidLocked || profiles.list.length < 2;
-    $("listenTime").hidden = kidLocked || !Listener;
-    $("buttonsSide").hidden = kidLocked;
+    $("settings").classList.toggle("kid-locked", kidLocked);
     const add = $("profileAdd");
     if (add) add.hidden = kidLocked;
-    $("changePin").hidden = kidLocked || !KidLock || !settings.kidPin;
   }
 
   async function refreshKidLock() {
@@ -590,7 +569,7 @@
     if (name === null) return;
     p.name = name;
     saveProfiles();
-    renderHome();
+    renderSettings();
   }
 
   async function setListenTime() {
@@ -603,14 +582,13 @@
     if (secs === null) return;
     p.listenSeconds = +secs;
     saveProfiles();
-    renderHome();
+    renderSettings();
   }
 
-  function toggleButtonsSide() {
-    const p = currentProfile();
-    p.buttonsSide = p.buttonsSide === "right" ? "left" : "right";
+  function setButtonsSide(side) {
+    currentProfile().buttonsSide = side;
     saveProfiles();
-    renderHome();
+    renderSettings();
   }
 
   function removeProfile() {
@@ -632,8 +610,7 @@
       b.classList.toggle("active", active);
       b.setAttribute("aria-pressed", String(active));
       b.textContent = p.name;
-      // Tapping the selected reader again renames it (grown-ups only).
-      b.onclick = () => (!active ? switchProfile(p.id) : kidLocked ? null : renameProfile());
+      b.onclick = () => { if (!active) switchProfile(p.id); };
       box.appendChild(b);
     }
     const add = document.createElement("button");
@@ -645,22 +622,57 @@
     add.hidden = kidLocked;
     add.onclick = addProfile;
     box.appendChild(add);
-    $("removeProfile").textContent = `Remove ${currentProfile().name}`;
-    $("removeProfile").hidden = kidLocked || profiles.list.length < 2;
-    $("listenTime").textContent = `⏱ Listening time: ${listenSeconds()} s`;
-    $("listenTime").hidden = kidLocked || !Listener;
-    // Which side the buttons go on in landscape (style.css), per reader.
-    const right = currentProfile().buttonsSide === "right";
-    document.body.classList.toggle("buttons-right", right);
-    $("buttonsSide").textContent = `↔ Landscape buttons: ${right ? "right" : "left"}`;
-    $("buttonsSide").hidden = kidLocked;
+    applyProfile();
+  }
+
+  // Settings of the current reader that change how the app looks.
+  function applyProfile() {
+    // Which side the buttons go on in landscape (style.css).
+    document.body.classList.toggle("buttons-right", currentProfile().buttonsSide === "right");
     drawFox();
+  }
+
+  // ---------- Settings screen (current reader) ----------
+  function renderSettings() {
+    const p = currentProfile();
+    applyProfile();
+    $("settingsTitle").textContent = `${p.name}'s settings`;
+    $("profileName").textContent = `${p.name} ✏️`;
+    const box = $("foxChoices");
+    box.innerHTML = "";
+    for (const a of window.AVATARS) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "fox-choice fox wait";
+      b.classList.toggle("active", a === avatar());
+      b.setAttribute("aria-pressed", String(a === avatar()));
+      b.innerHTML = `${foxSvg(a)}<span>${a.name}</span>`;
+      b.onclick = () => setFox(a.id);
+      box.appendChild(b);
+    }
+    $("listenRow").hidden = !Listener;
+    $("listenTime").textContent = `⏱ ${listenSeconds()} seconds`;
+    const right = p.buttonsSide === "right";
+    $("sideLeft").classList.toggle("active", !right);
+    $("sideLeft").setAttribute("aria-pressed", String(!right));
+    $("sideRight").classList.toggle("active", right);
+    $("sideRight").setAttribute("aria-pressed", String(right));
+    $("removeProfile").textContent = `Remove ${p.name}`;
+    $("removeProfile").hidden = profiles.list.length < 2;
+    $("pinRow").hidden = !KidLock || !settings.kidPin;
+    updateKidLock();
+  }
+
+  function openSettings() {
+    renderSettings();
+    show("settings");
+    refreshKidLock();
   }
 
   // ---------- Screens ----------
   function show(name) {
-    for (const s of ["home", "study", "done"]) $(s).hidden = s !== name;
-    $("ember").hidden = name === "home";
+    for (const s of ["home", "settings", "study", "done"]) $(s).hidden = s !== name;
+    $("ember").hidden = name === "home" || name === "settings";
     if (name === "done") ember("happy");
   }
 
@@ -709,11 +721,14 @@
     updateMicToggle();
   });
   $("kidLock").addEventListener("click", toggleKidLock);
+  $("settingsBtn").addEventListener("click", openSettings);
+  $("settingsHome").addEventListener("click", renderHome);
+  $("profileName").addEventListener("click", renameProfile);
+  $("listenTime").addEventListener("click", setListenTime);
+  $("sideLeft").addEventListener("click", () => setButtonsSide("left"));
+  $("sideRight").addEventListener("click", () => setButtonsSide("right"));
   $("changePin").addEventListener("click", choosePin);
   $("removeProfile").addEventListener("click", removeProfile);
-  $("listenTime").addEventListener("click", setListenTime);
-  $("buttonsSide").addEventListener("click", toggleButtonsSide);
-  $("foxBtn").addEventListener("click", pickFox);
   $("reset").addEventListener("click", () => {
     if (confirm(`Erase all of ${currentProfile().name}'s progress and start over?`)) {
       state = { cards: {}, rounds: {}, turn: 0 };
@@ -728,7 +743,6 @@
     // (and never close it while kid lock is on).
     App.addListener("backButton", () => {
       if (!$("pinDialog").hidden) $("pinCancel").click();
-      else if (!$("foxDialog").hidden) $("foxCancel").click();
       else if ($("home").hidden) renderHome();
       else if (!kidLocked) App.exitApp();
     });
@@ -742,8 +756,8 @@
   });
 
   // Android can also pin/unpin from outside the app (its "Pin this app?"
-  // prompt, or the system unpin gesture), so keep the home screen in sync.
-  if (KidLock) setInterval(() => { if (!$("home").hidden) refreshKidLock(); }, 1500);
+  // prompt, or the system unpin gesture), so keep home and settings in sync.
+  if (KidLock) setInterval(() => { if (!$("home").hidden || !$("settings").hidden) refreshKidLock(); }, 1500);
 
   window.WORD_SETS.forEach(preloadSet);
   renderHome();

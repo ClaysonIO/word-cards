@@ -11,16 +11,19 @@ packaged as an Android app with [Capacitor](https://capacitorjs.com).
   - said it within ~2.5 s on the first try → **Easy**
   - within ~6 s, at most one wrong try → **Good**
   - got there eventually / several tries → **Hard**
-  - not said within the listening time (15 s by default, set per reader on the home screen) → the word is read aloud → **Again**
+  - not said within the listening time (15 s by default, set per reader in ⚙️ settings) → the word is read aloud → **Again**
 - The buttons under the card are pictures, since the kids can't read yet:
   **🤷 with question marks** (Don't know) reads the word aloud and counts as
   Again; **😊** (Got it, only shown with voice off) counts as Good.
 - **Ember** the fox sits in the bottom-right corner: bouncing excitedly while
   waiting, celebrating and waving when the word is read right, and giving a
   gentle "you'll get it next time" look after Don't know.
-- Each reader picks their own fox by tapping the fox on the home screen:
-  **Ember** (classic), **Snowy** (arctic fox in a scarf), **Pixel** (8-bit),
-  **Manga** or **Origami**. The styles live in `www/avatars.js`.
+- Each reader picks their own fox in ⚙️ settings: **Ember** (classic),
+  **Snowy** (arctic fox in a scarf), **Pixel** (8-bit), **Manga** or
+  **Origami**. The styles live in `www/avatars.js`.
+- The ⚙️ button on the home screen opens the selected reader's settings:
+  name, fox, listening time, which side the buttons go in landscape, reset
+  progress and remove the reader (plus the grown-up PIN).
 - Cards are one-sided (no flipping). With voice off, a grown-up taps 😊 or
   the card when the word was read correctly.
 - Every word is pre-recorded (see below), so it plays instantly.
@@ -37,13 +40,13 @@ notification shade stop working and the child can't switch apps.
 - The first time, you choose a grown-up PIN (4–8 numbers) and Android asks
   "Pin this app?" once.
 - To unlock, tap **🔓 Unlock (grown-ups)** on the home screen and enter the PIN.
-  **Change PIN** is next to **Reset progress** while the app is unlocked.
-  **Reset progress** is hidden while the app is locked.
+  **Change grown-up PIN** is in ⚙️ settings while the app is unlocked.
+  While the app is locked, settings only lets the child pick a fox.
 - Android always keeps its own way out: holding Back + Overview (or swipe up
   and hold with gesture navigation). Turn on **Settings → Security → App
   pinning → Ask for PIN before unpinning** so that way out needs the phone's
   PIN. With that setting on, the phone also locks when you unlock from the app.
-- Forgot the PIN? Unpin with the Android gesture, then use **Change PIN**.
+- Forgot the PIN? Unpin with the Android gesture, then use **Change grown-up PIN**.
 
 ### Practice rounds (not "done for the day")
 

@@ -11,19 +11,54 @@
 <body>
   <!-- Home: pick a color set -->
   <section id="home" class="screen">
+    <button id="settingsBtn" class="icon-btn home-settings" type="button" aria-label="Settings">⚙️</button>
     <button id="micToggle" class="icon-btn home-mic" type="button" aria-label="Voice on/off" aria-pressed="true" hidden>🎤</button>
     <h1 class="title">Word Cards</h1>
     <div id="profiles" class="profiles"></div>
-    <button id="foxBtn" class="fox-btn" type="button" aria-label="Pick a fox"></button>
     <div id="sets" class="sets"></div>
     <div class="footer">
       <button id="kidLock" class="lock-btn" type="button" hidden>🔒 Kid lock</button>
       <div id="voiceStatus" class="voice-status"></div>
-      <button id="listenTime" class="link-btn" type="button" hidden></button>
-      <button id="buttonsSide" class="link-btn" type="button" hidden></button>
-      <button id="reset" class="link-btn" type="button">Reset progress</button>
-      <button id="changePin" class="link-btn" type="button" hidden>Change PIN</button>
-      <button id="removeProfile" class="link-btn" type="button" hidden></button>
+    </div>
+  </section>
+
+  <!-- Settings of the current reader. While kid lock is on, only the fox
+       can be changed (the "grown" rows are hidden). -->
+  <section id="settings" class="screen" hidden>
+    <header class="topbar">
+      <button id="settingsHome" class="icon-btn" type="button" aria-label="Home">🏠</button>
+      <h2 id="settingsTitle" class="settings-title"></h2>
+      <span class="icon-spacer"></span>
+    </header>
+    <div class="settings">
+      <div class="setting grown">
+        <span class="setting-label">Name</span>
+        <button id="profileName" class="setting-btn" type="button"></button>
+      </div>
+      <div class="setting">
+        <span class="setting-label">Fox</span>
+        <div id="foxChoices" class="fox-choices"></div>
+      </div>
+      <div id="listenRow" class="setting grown">
+        <span class="setting-label">Listening time</span>
+        <button id="listenTime" class="setting-btn" type="button"></button>
+      </div>
+      <div class="setting grown">
+        <span class="setting-label">Buttons in landscape</span>
+        <div class="seg" role="group" aria-label="Buttons in landscape">
+          <button id="sideLeft" class="seg-btn" type="button">⬅ Left</button>
+          <button id="sideRight" class="seg-btn" type="button">Right ➡</button>
+        </div>
+      </div>
+      <div class="setting grown">
+        <span class="setting-label">Progress</span>
+        <button id="reset" class="setting-btn danger" type="button">Reset progress</button>
+        <button id="removeProfile" class="setting-btn danger" type="button"></button>
+      </div>
+      <div id="pinRow" class="setting grown">
+        <span class="setting-label">Kid lock (all readers)</span>
+        <button id="changePin" class="setting-btn" type="button">Change grown-up PIN</button>
+      </div>
     </div>
   </section>
 
@@ -86,17 +121,6 @@
   <!-- The reader's fox: waits excitedly, celebrates, and cheers you on.
        Drawn from avatars.js in the style the reader picked. -->
   <div id="ember" class="ember fox wait" hidden></div>
-
-  <!-- Pick a fox style for the current reader -->
-  <div id="foxDialog" class="pin-dialog" hidden>
-    <div class="pin-box fox-box" role="dialog" aria-labelledby="foxTitle">
-      <h2 id="foxTitle" class="pin-title">Pick your fox</h2>
-      <div id="foxChoices" class="fox-choices"></div>
-      <div class="pin-actions">
-        <button id="foxCancel" class="big-btn secondary" type="button">Cancel</button>
-      </div>
-    </div>
-  </div>
 
   <script src="capacitor.js"></script>
   <script src="words.js"></script>
