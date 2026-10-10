@@ -511,7 +511,10 @@
   function updateKidLock() {
     const b = $("kidLock");
     b.hidden = !KidLock;
-    b.textContent = kidLocked ? "🔓 Unlock (grown-ups)" : "🔒 Kid lock";
+    // Shows the current state: open lock = tap to lock, closed = tap to unlock.
+    b.textContent = kidLocked ? "🔒" : "🔓";
+    b.setAttribute("aria-label", kidLocked ? "Unlock (grown-ups)" : "Kid lock");
+    b.setAttribute("aria-pressed", String(kidLocked));
     b.classList.toggle("locked", kidLocked);
     $("settings").classList.toggle("kid-locked", kidLocked);
     const add = $("profileAdd");

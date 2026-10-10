@@ -27,19 +27,19 @@ packaged as an Android app with [Capacitor](https://capacitorjs.com).
 - Cards are one-sided (no flipping). With voice off, a grown-up taps 😊 or
   the card when the word was read correctly.
 - Every word is pre-recorded (see below), so it plays instantly.
-- The 🎤 button in the corner turns listening on/off. The home screen shows
-  whether voice is ready.
+- The 🎤 button at the bottom of the home screen turns listening on/off,
+  with a line below it showing whether voice is ready.
 - Progress is stored on the device.
 
 ### Kid lock
 
-Tap **🔒 Kid lock** at the bottom of the home screen before handing the phone
+Tap the **🔓** button in the top-right corner of the home screen before handing the phone
 to a child. The app uses Android *screen pinning*, so Home, Recents and the
 notification shade stop working and the child can't switch apps.
 
 - The first time, you choose a grown-up PIN (4–8 numbers) and Android asks
   "Pin this app?" once.
-- To unlock, tap **🔓 Unlock (grown-ups)** on the home screen and enter the PIN.
+- While locked the button shows a yellow **🔒**. To unlock, tap it and enter the PIN.
   **Change grown-up PIN** is in ⚙️ settings while the app is unlocked.
   While the app is locked, settings only lets the child pick a fox.
 - Android always keeps its own way out: holding Back + Overview (or swipe up

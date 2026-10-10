@@ -39,13 +39,8 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 /* ---------- Home ---------- */
 .title { font-size: 2.6rem; font-weight: 400; margin: 24px 0; }
 
-/* Voice on/off lives on the home screen */
+/* Settings top left, kid lock top right */
 #home { position: relative; }
-.home-mic {
-  position: absolute;
-  top: max(16px, env(safe-area-inset-top));
-  right: max(16px, env(safe-area-inset-right));
-}
 
 .home-settings {
   position: absolute;
@@ -54,6 +49,10 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 }
 
 #home .title { padding: 0 72px; text-align: center; }
+
+/* Voice on/off sits with the voice status at the bottom */
+.home-mic { margin-top: 20px; }
+.home-mic[hidden] { display: none; }
 
 /* Profiles: one chip per reader, tap "+" to add */
 .profiles {
@@ -152,15 +151,10 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 
 /* Kid lock */
 .lock-btn {
-  margin-top: 20px;
-  padding: 10px 22px;
-  font-size: 1.2rem;
-  background: #fff;
-  border: 3px solid var(--ink);
-  border-radius: 14px;
-  box-shadow: 0 4px 0 rgba(0,0,0,.2);
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
 }
-.lock-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
 .lock-btn.locked { background: #fde68a; }
 
 .pin-dialog {
