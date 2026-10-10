@@ -42,12 +42,7 @@
     </div>
 
     <div class="controls">
-      <div id="rateBtns" class="rate">
-        <button class="rate-btn again" data-rating="again" type="button"><span class="emoji">😟</span>Again</button>
-        <button class="rate-btn hard"  data-rating="hard"  type="button"><span class="emoji">🤔</span>Hard</button>
-        <button class="rate-btn good"  data-rating="good"  type="button"><span class="emoji">🙂</span>Good</button>
-        <button class="rate-btn easy"  data-rating="easy"  type="button"><span class="emoji">🤩</span>Easy</button>
-      </div>
+      <button id="dontKnow" class="dontknow-btn" type="button">Don't know</button>
     </div>
   </section>
 
@@ -59,6 +54,74 @@
     <button id="allBtn" class="big-btn secondary" type="button">All the words</button>
     <button id="doneHome" class="big-btn secondary" type="button">🏠 Home</button>
   </section>
+
+  <!-- Ember the fox: waits excitedly, celebrates, and cheers you on -->
+  <div id="ember" class="ember wait" hidden>
+    <div id="emberSays" class="ember-says" aria-live="polite"></div>
+    <svg viewBox="0 0 120 140" aria-label="Ember the fox" role="img">
+      <g class="e-tail">
+        <path d="M80 116 C104 116 120 96 114 70 C111 60 101 58 98 66 C104 82 96 100 74 104 Z" fill="#f08a3c"/>
+        <path d="M114 70 C111 60 101 58 98 66 C100 72 106 76 114 70 Z" fill="#fff4e6"/>
+      </g>
+      <g class="e-body">
+        <ellipse cx="60" cy="110" rx="26" ry="23" fill="#f08a3c"/>
+        <ellipse cx="60" cy="115" rx="15" ry="16" fill="#fff4e6"/>
+        <ellipse cx="47" cy="132" rx="9" ry="5" fill="#5b3a29"/>
+        <ellipse cx="73" cy="132" rx="9" ry="5" fill="#5b3a29"/>
+        <g class="e-arm e-arm-l">
+          <line x1="40" y1="100" x2="34" y2="118" stroke="#e2782c" stroke-width="9" stroke-linecap="round"/>
+          <circle cx="34" cy="118" r="5" fill="#5b3a29"/>
+        </g>
+        <g class="e-arm e-arm-r">
+          <line x1="80" y1="100" x2="86" y2="118" stroke="#e2782c" stroke-width="9" stroke-linecap="round"/>
+          <circle cx="86" cy="118" r="5" fill="#5b3a29"/>
+        </g>
+      </g>
+      <g class="e-head">
+        <g class="e-ear e-ear-l">
+          <path d="M33 54 L30 16 L56 38 Z" fill="#f08a3c"/>
+          <path d="M36 46 L34 25 L49 38 Z" fill="#5b3a29"/>
+        </g>
+        <g class="e-ear e-ear-r">
+          <path d="M87 54 L90 16 L64 38 Z" fill="#f08a3c"/>
+          <path d="M84 46 L86 25 L71 38 Z" fill="#5b3a29"/>
+        </g>
+        <path d="M28 58 C28 40 43 31 60 31 C77 31 92 40 92 58 C92 73 77 86 60 87 C43 86 28 73 28 58 Z" fill="#f08a3c"/>
+        <path d="M31 63 C41 64 51 68 60 79 C69 68 79 64 89 63 C87 77 74 87 60 87 C46 87 33 77 31 63 Z" fill="#fff4e6"/>
+        <ellipse class="e-blush" cx="40" cy="70" rx="5" ry="3" fill="#ff8fa3"/>
+        <ellipse class="e-blush" cx="80" cy="70" rx="5" ry="3" fill="#ff8fa3"/>
+        <g class="e-eyes-open">
+          <circle cx="47" cy="57" r="5.5" fill="#2b1d16"/>
+          <circle cx="73" cy="57" r="5.5" fill="#2b1d16"/>
+          <circle cx="49" cy="55" r="1.8" fill="#fff"/>
+          <circle cx="75" cy="55" r="1.8" fill="#fff"/>
+        </g>
+        <g class="e-eyes-happy" fill="none" stroke="#2b1d16" stroke-width="3.2" stroke-linecap="round">
+          <path d="M41 59 Q47 50 53 59"/>
+          <path d="M67 59 Q73 50 79 59"/>
+        </g>
+        <g class="e-eyes-sad">
+          <circle cx="47" cy="59" r="4.5" fill="#2b1d16"/>
+          <circle cx="73" cy="59" r="4.5" fill="#2b1d16"/>
+          <circle cx="48.5" cy="57.5" r="1.6" fill="#fff"/>
+          <circle cx="74.5" cy="57.5" r="1.6" fill="#fff"/>
+          <path d="M40 51 L52 47 M80 51 L68 47" stroke="#5b3a29" stroke-width="2.6" stroke-linecap="round"/>
+        </g>
+        <ellipse cx="60" cy="74" rx="4.5" ry="3.2" fill="#2b1d16"/>
+        <path class="e-mouth-wait" d="M54 79 Q60 86 66 79 Z" fill="#7a2e1e"/>
+        <g class="e-mouth-happy">
+          <path d="M51 78 Q60 92 69 78 Z" fill="#7a2e1e"/>
+          <path d="M55 84 Q60 89 65 84 Q60 82 55 84 Z" fill="#ff8fa3"/>
+        </g>
+        <path class="e-mouth-sad" d="M55 81 Q60 84 65 81" fill="none" stroke="#2b1d16" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+      <g class="e-sparkles" fill="#ffd23f">
+        <path d="M14 30 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z"/>
+        <path d="M104 22 l2.5 5.5 5.5 2.5 -5.5 2.5 -2.5 5.5 -2.5 -5.5 -5.5 -2.5 5.5 -2.5 Z"/>
+        <path d="M108 100 l2 4 4 2 -4 2 -2 4 -2 -4 -4 -2 4 -2 Z"/>
+      </g>
+    </svg>
+  </div>
 
   <script src="capacitor.js"></script>
   <script src="words.js"></script>

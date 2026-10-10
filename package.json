@@ -6,6 +6,7 @@
   "scripts": {
     "copy-capacitor": "node scripts/copy-capacitor.mjs",
     "sync": "node scripts/copy-capacitor.mjs && npx cap sync android",
+    "audio": "node scripts/generate-audio.mjs",
     "serve": "npx --yes http-server www -p 8080 -c-1"
   },
   "dependencies": {

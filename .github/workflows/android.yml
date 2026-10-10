@@ -34,6 +34,22 @@ jobs:
       - name: Download on-device speech model
         run: ./scripts/fetch-speech-model.sh
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache Piper voice
+        uses: actions/cache@v4
+        with:
+          path: .cache/piper-voice
+          key: piper-voice-en-us-lessac-medium
+
+      - name: Record audio for new words
+        run: |
+          command -v ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+          pip install piper-tts
+          node scripts/generate-audio.mjs
+
       - name: Install & sync web assets into Android project
         run: |
           npm ci

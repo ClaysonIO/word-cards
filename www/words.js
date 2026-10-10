@@ -13,6 +13,8 @@
 //               progress of all existing words. Removing a word just
 //               hides it. If the voice mispronounces a word, write
 //               { text: "read", say: "reed" } instead of "read".
+//               The spoken audio is pre-recorded at build time
+//               (scripts/generate-audio.mjs).
 //
 //  To add a new set, copy the yellow block, give it a new id/name/color
 //  and a new word list. Then commit — GitHub Actions builds a new APK.
@@ -55,12 +57,12 @@ window.PRACTICE = {
 // ---------------------------------------------------------------------
 //  Voice (on-device speech recognition)
 // ---------------------------------------------------------------------
-//  The app listens while the word is shown and picks a rating:
+//  The app listens while the word is shown and rates it from how the
+//  child read it (there is a single "Don't know" button):
 //    said it within easySeconds, first try   -> Easy
 //    said it within goodSeconds (≤1 miss)    -> Good
 //    got it eventually / after a few tries   -> Hard
-//    not said within giveUpSeconds           -> Again (card flips, word is read aloud)
-//  The rating is only pre-selected; tap any button to move on.
+//    "Don't know", or not said within giveUpSeconds -> Again (word is read aloud)
 window.VOICE = {
   easySeconds: 2.5,
   goodSeconds: 6,

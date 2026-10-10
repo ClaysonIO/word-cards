@@ -103,13 +103,45 @@
     state.cards[id] = c;
   }
 
-  // ---------- Text to speech ----------
+  // ---------- Saying words ----------
+  // Every word is pre-recorded into www/audio/ (scripts/generate-audio.mjs) and
+  // decoded into memory up front, so it plays the instant it is needed.
+  // Text to speech is only a fallback for a word without a recording.
   const Cap = window.Capacitor;
   const isNative = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
   const plugin = (name) => (isNative && Cap.registerPlugin ? Cap.registerPlugin(name) : null);
   const nativeTTS = plugin("TextToSpeech");
 
+  // Must match audioSlug() in scripts/generate-audio.mjs.
+  const audioSlug = (say) => say.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let audioCtx = null;
+  const clips = new Map();     // slug -> Promise<AudioBuffer|null>
+  const decoded = new Map();   // slug -> AudioBuffer
+  let playing = null;
+
+  function audio() {
+    if (!audioCtx && AudioCtx) audioCtx = new AudioCtx();
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    return audioCtx;
+  }
+
+  function loadClip(say) {
+    const slug = audioSlug(say);
+    if (!clips.has(slug)) {
+      const ctx = audio();
+      clips.set(slug, !ctx ? Promise.resolve(null) : fetch(`audio/${slug}.mp3`)
+        .then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then((data) => new Promise((ok, fail) => ctx.decodeAudioData(data, ok, fail)))
+        .then((buf) => { decoded.set(slug, buf); return buf; })
+        .catch(() => null));
+    }
+    return clips.get(slug);
+  }
+  const preloadSet = (set) => set.words.forEach((w) => loadClip(wordSay(w)));
+
   function stopSpeaking() {
+    if (playing) { try { playing.stop(); } catch (_) { /* ignore */ } playing = null; }
     try {
       if (nativeTTS) nativeTTS.stop().catch(() => {});
       else if ("speechSynthesis" in window) speechSynthesis.cancel();
@@ -118,6 +150,21 @@
 
   // Resolves when the word has finished playing.
   async function speak(text) {
+    stopSpeaking();
+    const buf = decoded.get(audioSlug(text)) || await loadClip(text);
+    if (buf) {
+      const ctx = audio();
+      await new Promise((resolve) => {
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.onended = resolve;
+        playing = src;
+        src.start();
+        setTimeout(resolve, buf.duration * 1000 + 500);
+      });
+      return;
+    }
     try {
       if (nativeTTS) {
         await nativeTTS.stop().catch(() => {});
@@ -169,6 +216,21 @@
     Listener.addListener("error", (e) => setVoiceStatus("Voice error: " + e.message));
   }
 
+  // ---------- Ember the fox ----------
+  // "wait" (excited, waiting for the word), "happy" (got it) or "sad" (didn't know it).
+  const EMBER_SAYS = {
+    happy: ["Yay!", "You got it!", "Great reading!", "Woohoo!", "Super!", "Awesome!"],
+    sad: ["That's okay!", "Good try!", "You'll get it next time!", "Let's learn it together!"],
+  };
+  const pick = (list) => list[Math.floor(Math.random() * list.length)];
+  function ember(mood) {
+    const el = $("ember");
+    el.classList.remove("wait", "happy", "sad");
+    void el.offsetWidth;                         // restart the animations
+    el.classList.add(mood);
+    $("emberSays").textContent = EMBER_SAYS[mood] ? pick(EMBER_SAYS[mood]) : "";
+  }
+
   // ---------- Study session ----------
   // One card at a time. The child just reads; the app listens, rates and moves on.
   // A card "turn" = { item, t0, hit, misses, helped, timer, raf, done, listening }
@@ -178,6 +240,8 @@
   function start(set, allWords) {
     const round = (!allWords && currentRound(set)) || buildRound(set, allWords);
     session = { set, round };
+    audio();                                     // unlock sound on this tap
+    preloadSet(set);
     document.documentElement.style.setProperty("--card-color", set.color);
     document.documentElement.style.setProperty("--card-ink", set.textColor);
     updateMicToggle();
@@ -191,7 +255,8 @@
     if (!item) { show("done"); return; }
     turn = { item, t0: performance.now(), hit: 0, misses: 0, helped: false, timer: 0, raf: 0, done: false, listening: false };
     $("card").classList.remove("correct", "missed");
-    for (const b of document.querySelectorAll(".rate-btn")) b.classList.remove("chosen");
+    $("dontKnow").disabled = false;
+    ember("wait");
     $("word").textContent = item.w;
     $("left").textContent = `${session.round.queue.length} left`;
     listen();
@@ -268,13 +333,15 @@
     }
   }
 
-  // Nobody said it in time: read the word to them, then move on.
+  // Nobody said it in time: treat it like "Don't know".
   function giveUp(t) {
     if (turn !== t || t.done) return;
     finish("again", "timeout");
   }
 
-  // Show the rating for a moment, then go to the next card.
+  // Ember reacts for a moment, then go to the next card. "how" is
+  // "voice" (read it), "tap" (a grown-up tapped the card, no voice),
+  // "dontknow" (the button) or "timeout".
   async function finish(rating, how) {
     const t = turn;
     if (!t || t.done) return;
@@ -283,16 +350,16 @@
     cancelAnimationFrame(t.raf);
     pauseListening();
     $("listen").classList.add("idle");
-    document.querySelector(`.rate-btn[data-rating="${rating}"]`).classList.add("chosen");
-    if (how === "voice") {
+    $("dontKnow").disabled = true;
+    if (how === "voice" || how === "tap") {
       $("card").classList.add("correct");
-      await wait(900);
-    } else if (how === "timeout") {
-      $("card").classList.add("missed");
-      await speak(wordSay(findWord(session.set, t.item.w) || t.item.w));
+      ember("happy");
       await wait(1500);
     } else {
-      await wait(250);
+      $("card").classList.add("missed");
+      ember("sad");
+      await speak(wordSay(findWord(session.set, t.item.w) || t.item.w));
+      await wait(1500);
     }
     if (turn !== t || $("study").hidden) return;   // left the screen meanwhile
     rate(rating);
@@ -333,6 +400,8 @@
   // ---------- Screens ----------
   function show(name) {
     for (const s of ["home", "study", "done"]) $(s).hidden = s !== name;
+    $("ember").hidden = name === "home";
+    if (name === "done") ember("happy");
   }
 
   function renderHome() {
@@ -361,9 +430,10 @@
 
   // ---------- Wiring ----------
   $("hintBtn").addEventListener("click", hint);
-  $("rateBtns").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-rating]");
-    if (b) finish(b.dataset.rating, "tap");
+  $("dontKnow").addEventListener("click", () => finish("again", "dontknow"));
+  // Without voice, a grown-up taps the card when the word was read correctly.
+  $("card").addEventListener("click", (e) => {
+    if (!voiceOn() && !e.target.closest("#hintBtn")) finish("good", "tap");
   });
   $("homeBtn").addEventListener("click", renderHome);
   $("doneHome").addEventListener("click", renderHome);
@@ -395,5 +465,6 @@
     App.addListener("resume", () => listen());
   }
 
+  window.WORD_SETS.forEach(preloadSet);
   renderHome();
 })();

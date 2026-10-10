@@ -6,15 +6,21 @@ A very simple spaced-repetition flashcard app for young readers (sight words),
 packaged as an Android app with [Capacitor](https://capacitorjs.com).
 
 - Hands-free: pick a color, then the child just reads each word out loud.
-  The app listens **on the device** (no internet), rates the answer and moves
-  to the next card by itself:
-  - said it within ~2.5 s on the first try → **🤩 Easy**
-  - within ~6 s, at most one wrong try → **🙂 Good**
-  - got there eventually / several tries → **🤔 Hard**
-  - not said within 15 s → the word is read aloud → **😟 Again**
-- Cards are one-sided (no flipping). The rating buttons are always on screen,
-  so a grown-up can tap one at any time to rate and move on.
-- 🔊 on the card reads the word aloud (counts as help: best rating is Hard).
+  The app listens **on the device** (no internet), rates the answer from how
+  they read it and moves to the next card by itself:
+  - said it within ~2.5 s on the first try → **Easy**
+  - within ~6 s, at most one wrong try → **Good**
+  - got there eventually / several tries → **Hard**
+  - not said within 15 s → the word is read aloud → **Again**
+- There is just one button under the card: **Don't know**. It reads the word
+  aloud and counts as Again.
+- **Ember** the fox sits in the bottom-right corner: bouncing excitedly while
+  waiting, celebrating and waving when the word is read right, and giving a
+  gentle "you'll get it next time" look after Don't know.
+- Cards are one-sided (no flipping). 🔊 on the card reads the word aloud
+  (counts as help: best rating is Hard). With voice off, a grown-up taps the
+  card when the word was read correctly.
+- Every word is pre-recorded (see below), so it plays instantly.
 - The 🎤 button in the corner turns listening on/off. The home screen shows
   whether voice is ready.
 - Progress is stored on the device.
@@ -52,6 +58,22 @@ size (`PRACTICE`) are at the bottom of the same file. Commit and push — GitHub
 If the voice says a word oddly, use `{ text: "read", say: "reed" }` instead of
 a plain string.
 
+### Word audio
+
+Each word is recorded ahead of time into `www/audio/<word>.mp3` with
+[Piper](https://github.com/rhasspy/piper) (offline neural text-to-speech,
+voice `en-us-lessac-medium`). The app decodes them all into memory when it
+opens, so pressing 🔊 or Don't know plays the word immediately instead of
+waiting for the phone's text-to-speech engine. CI records any new words
+automatically before building; to do it locally:
+
+```sh
+pip install piper-tts    # also needs ffmpeg
+npm run audio            # records missing words, deletes unused ones
+```
+
+A word without a recording falls back to the phone's text-to-speech.
+
 ## Download
 
 Latest APK: `https://github.com/ClaysonIO/simple-spaced-repetition/releases/latest/download/word-cards.apk`
@@ -87,4 +109,4 @@ npm run sync         # copy www/ into the Android project
 
 ## License
 
-MIT, see [LICENSE](LICENSE). Bundled third-party parts keep their own licenses: Didact Gothic font (SIL OFL, `www/fonts/`), Vosk speech model and library (Apache 2.0), Capacitor (MIT).
+MIT, see [LICENSE](LICENSE). Bundled third-party parts keep their own licenses: Didact Gothic font (SIL OFL, `www/fonts/`), Vosk speech model and library (Apache 2.0), Capacitor (MIT). The word recordings in `www/audio/` are made with the Piper `lessac` voice, trained on the [Lessac Blizzard 2013 dataset](https://www.cstr.ed.ac.uk/projects/blizzard/2013/lessac_blizzard2013/license.html) and covered by its license.
