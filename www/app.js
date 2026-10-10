@@ -106,7 +106,8 @@
   // ---------- Text to speech ----------
   const Cap = window.Capacitor;
   const isNative = !!(Cap && Cap.isNativePlatform && Cap.isNativePlatform());
-  const nativeTTS = isNative && Cap.registerPlugin ? Cap.registerPlugin("TextToSpeech") : null;
+  const plugin = (name) => (isNative && Cap.registerPlugin ? Cap.registerPlugin(name) : null);
+  const nativeTTS = plugin("TextToSpeech");
 
   function stopSpeaking() {
     try {
@@ -115,6 +116,7 @@
     } catch (_) { /* ignore */ }
   }
 
+  // Resolves when the word has finished playing.
   async function speak(text) {
     try {
       if (nativeTTS) {
@@ -124,103 +126,202 @@
       }
       if ("speechSynthesis" in window) {
         speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = "en-US";
-        u.rate = 0.8;
-        speechSynthesis.speak(u);
+        await new Promise((resolve) => {
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = "en-US";
+          u.rate = 0.8;
+          u.onend = u.onerror = resolve;
+          speechSynthesis.speak(u);
+          setTimeout(resolve, 3000);
+        });
       }
     } catch (e) { console.warn("TTS failed", e); }
   }
 
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
   // ---------- Voice recognition (on-device Vosk, Android only) ----------
-  const Listener = isNative && Cap.registerPlugin ? Cap.registerPlugin("WordListener") : null;
-  const voice = { ready: false, denied: false };
+  const Listener = plugin("WordListener");
+  const voice = { ready: false, denied: false, status: Listener ? "Voice: loading…" : "Voice: only in the Android app" };
 
   function voiceOn() {
-    return Listener && voice.ready && !voice.denied && settings.voice !== false;
+    return !!(Listener && voice.ready && !voice.denied && settings.voice !== false);
+  }
+  function setVoiceStatus(text) {
+    voice.status = text;
+    $("voiceStatus").textContent = text;
   }
 
   if (Listener) {
     // Load the model after the first screen is drawn so the app opens instantly.
     setTimeout(() => {
       Listener.prepare()
-        .then(() => { voice.ready = true; updateMicToggle(); maybeStartListening(); })
-        .catch((e) => console.warn("Voice unavailable", e));
+        .then(() => {
+          voice.ready = true;
+          setVoiceStatus("Voice: ready 🎤");
+          updateMicToggle();
+          listen();
+        })
+        .catch((e) => setVoiceStatus("Voice unavailable: " + (e && e.message)));
     }, 50);
     Listener.addListener("partial", (e) => onHeard(e.text, false));
     Listener.addListener("result", (e) => onHeard(e.text, true));
+    Listener.addListener("error", (e) => setVoiceStatus("Voice error: " + e.message));
   }
 
-  // One listening attempt per card.
-  let attempt = null; // { word, t0, hit, misses, timer, raf }
+  // ---------- Study session ----------
+  // One card at a time. The child just reads; the app listens, rates and moves on.
+  // A card "turn" = { item, t0, hit, misses, helped, timer, raf, done, listening }
+  let session = null;   // { set, round }
+  let turn = null;
 
-  function maybeStartListening() {
-    if (!session || session.flipped || attempt || !voiceOn() || $("study").hidden) return;
+  function start(set, allWords) {
+    const round = (!allWords && currentRound(set)) || buildRound(set, allWords);
+    session = { set, round };
+    document.documentElement.style.setProperty("--card-color", set.color);
+    document.documentElement.style.setProperty("--card-ink", set.textColor);
+    updateMicToggle();
+    show("study");
+    showCard();
+  }
+
+  function showCard() {
+    endTurn();
     const item = session.round.queue[0];
-    if (!item) return;
-    const thisAttempt = { word: item.w, t0: 0, hit: 0, misses: 0, timer: 0, raf: 0 };
-    attempt = thisAttempt;
+    if (!item) { show("done"); return; }
+    turn = { item, t0: performance.now(), hit: 0, misses: 0, helped: false, timer: 0, raf: 0, done: false, listening: false };
+    $("card").classList.remove("correct", "missed");
+    for (const b of document.querySelectorAll(".rate-btn")) b.classList.remove("chosen");
+    $("word").textContent = item.w;
+    $("left").textContent = `${session.round.queue.length} left`;
+    listen();
+  }
+
+  // Start (or resume) listening for the current card. The 15 s clock starts
+  // the first time the microphone is actually on.
+  function listen() {
+    const t = turn;
+    if (!t || t.done || t.listening || !voiceOn() || $("study").hidden) return;
+    t.listening = true;
     stopSpeaking();
     const words = session.set.words.map((w) => wordText(w).toLowerCase());
     Listener.start({ words }).then(() => {
-      if (attempt !== thisAttempt) { Listener.stop().catch(() => {}); return; }
-      thisAttempt.t0 = performance.now();
-      thisAttempt.timer = setTimeout(() => giveUp(thisAttempt), VOICE.giveUpSeconds * 1000);
-      $("listen").hidden = false;
-      $("listen").classList.remove("heard");
-      tickBar(thisAttempt);
+      if (turn !== t || t.done || !t.listening) { Listener.stop().catch(() => {}); return; }
+      if (!t.timer) {
+        t.t0 = performance.now();
+        t.timer = setTimeout(() => giveUp(t), VOICE.giveUpSeconds * 1000);
+        tickBar(t);
+      }
+      $("listen").classList.remove("idle", "heard");
     }).catch((e) => {
-      if (attempt === thisAttempt) attempt = null;
-      if (e && e.code === "DENIED") { voice.denied = true; updateMicToggle(); }
-      console.warn("Listening failed", e);
+      t.listening = false;
+      if (e && e.code === "DENIED") {
+        voice.denied = true;
+        setVoiceStatus("Voice: microphone permission was denied");
+        updateMicToggle();
+      } else {
+        setVoiceStatus("Voice error: " + (e && e.message));
+      }
     });
   }
 
-  function tickBar(a) {
-    if (attempt !== a) return;
-    const frac = Math.min(1, (performance.now() - a.t0) / (VOICE.giveUpSeconds * 1000));
-    $("timefill").style.transform = `scaleX(${1 - frac})`;
-    a.raf = requestAnimationFrame(() => tickBar(a));
-  }
-
-  function stopListening() {
-    if (!attempt) return;
-    clearTimeout(attempt.timer);
-    cancelAnimationFrame(attempt.raf);
-    attempt = null;
-    $("listen").hidden = true;
+  function pauseListening() {
+    if (turn) turn.listening = false;
     if (Listener) Listener.stop().catch(() => {});
   }
 
+  function endTurn() {
+    if (!turn) return;
+    turn.done = true;
+    clearTimeout(turn.timer);
+    cancelAnimationFrame(turn.raf);
+    pauseListening();
+    turn = null;
+    $("listen").classList.add("idle");
+  }
+
+  function tickBar(t) {
+    if (turn !== t || t.done) return;
+    const frac = Math.min(1, (performance.now() - t.t0) / (VOICE.giveUpSeconds * 1000));
+    $("timefill").style.transform = `scaleX(${1 - frac})`;
+    t.raf = requestAnimationFrame(() => tickBar(t));
+  }
+
   function onHeard(text, final) {
-    const a = attempt;
-    if (!a || !a.t0) return;
-    const heard = (text || "").toLowerCase().split(/\s+/).filter((t) => t && t !== "[unk]");
+    const t = turn;
+    if (!t || t.done || !t.listening || !t.timer) return;
+    const heard = (text || "").toLowerCase().split(/\s+/).filter((w) => w && w !== "[unk]");
     if (!heard.length) return;
     $("listen").classList.add("heard");
-    if (heard.includes(a.word.toLowerCase())) {
-      if (!a.hit) a.hit = performance.now();   // time it from the moment it was first heard
-      if (final) succeed(a);
+    if (heard.includes(t.item.w.toLowerCase())) {
+      if (!t.hit) t.hit = performance.now();   // time it from when it was first heard
+      if (final) {
+        const secs = (t.hit - t.t0) / 1000;
+        let rating = "hard";
+        if (!t.helped && t.misses === 0 && secs <= VOICE.easySeconds) rating = "easy";
+        else if (!t.helped && t.misses <= 1 && secs <= VOICE.goodSeconds) rating = "good";
+        finish(rating, "voice");
+      }
     } else if (final) {
-      a.misses++;                              // said something, but not the word
-      a.hit = 0;
+      t.misses++;                              // said something, but not the word
+      t.hit = 0;
     }
   }
 
-  function succeed(a) {
-    const secs = (a.hit - a.t0) / 1000;
-    let rating = "hard";
-    if (a.misses === 0 && secs <= VOICE.easySeconds) rating = "easy";
-    else if (a.misses <= 1 && secs <= VOICE.goodSeconds) rating = "good";
-    stopListening();
-    $("card").classList.add("correct");
-    reveal(rating);
+  // Nobody said it in time: read the word to them, then move on.
+  function giveUp(t) {
+    if (turn !== t || t.done) return;
+    finish("again", "timeout");
   }
 
-  function giveUp(a) {
-    if (attempt !== a) return;
-    stopListening();
-    reveal("again");
+  // Show the rating for a moment, then go to the next card.
+  async function finish(rating, how) {
+    const t = turn;
+    if (!t || t.done) return;
+    t.done = true;
+    clearTimeout(t.timer);
+    cancelAnimationFrame(t.raf);
+    pauseListening();
+    $("listen").classList.add("idle");
+    document.querySelector(`.rate-btn[data-rating="${rating}"]`).classList.add("chosen");
+    if (how === "voice") {
+      $("card").classList.add("correct");
+      await wait(900);
+    } else if (how === "timeout") {
+      $("card").classList.add("missed");
+      await speak(wordSay(findWord(session.set, t.item.w) || t.item.w));
+      await wait(1500);
+    } else {
+      await wait(250);
+    }
+    if (turn !== t || $("study").hidden) return;   // left the screen meanwhile
+    rate(rating);
+  }
+
+  // 🔊 on the card: read the word aloud. Needing help caps the rating at Hard.
+  async function hint() {
+    const t = turn;
+    if (!t || t.done) return;
+    t.helped = true;
+    pauseListening();
+    await speak(wordSay(findWord(session.set, t.item.w) || t.item.w));
+    if (turn === t && !t.done) listen();
+  }
+
+  function rate(rating) {
+    const q = session.round.queue;
+    const item = q.shift();
+    rateCard(session.set, item.w, rating);
+    // Struggled words come back later in the same round.
+    if (rating === "again" && item.again < 3) {
+      item.again++;
+      q.splice(Math.min(3, q.length), 0, item);
+    } else if (rating === "hard" && item.hard < 1) {
+      item.hard++;
+      q.splice(Math.min(6, q.length), 0, item);
+    }
+    save();
+    showCard();
   }
 
   function updateMicToggle() {
@@ -235,7 +336,7 @@
   }
 
   function renderHome() {
-    stopListening();
+    endTurn();
     stopSpeaking();
     const box = $("sets");
     box.innerHTML = "";
@@ -254,99 +355,26 @@
       b.onclick = () => start(set, false);
       box.appendChild(b);
     }
+    $("voiceStatus").textContent = voice.status;
     show("home");
   }
 
-  // ---------- Study session ----------
-  let session = null; // { set, round, flipped }
-
-  function start(set, allWords) {
-    const round = (!allWords && currentRound(set)) || buildRound(set, allWords);
-    session = { set, round, flipped: false };
-    document.documentElement.style.setProperty("--card-color", set.color);
-    document.documentElement.style.setProperty("--card-ink", set.textColor);
-    updateMicToggle();
-    show("study");
-    showCard();
-  }
-
-  function showCard() {
-    stopListening();
-    const item = session.round.queue[0];
-    if (!item) { show("done"); return; }
-    session.flipped = false;
-    const c = $("card");
-    c.style.transition = "none";          // jump back to the front instantly
-    c.classList.remove("flipped", "correct");
-    void c.offsetWidth;
-    c.style.transition = "";
-    $("wordFront").textContent = item.w;
-    $("wordBack").textContent = item.w;
-    $("left").textContent = `${session.round.queue.length} left`;
-    $("hearBtn").hidden = false;
-    $("rateBtns").hidden = true;
-    for (const b of document.querySelectorAll(".rate-btn")) b.classList.remove("suggested");
-    maybeStartListening();
-  }
-
-  // Flip to the back, read the word aloud and (optionally) pre-select a rating.
-  function reveal(suggested) {
-    if (!session) return;
-    const item = session.round.queue[0];
-    speak(wordSay(findWord(session.set, item.w) || item.w));
-    if (session.flipped) return;          // tapping again just repeats the word
-    stopListening();
-    session.flipped = true;
-    $("card").classList.add("flipped");
-    $("hearBtn").hidden = true;
-    $("rateBtns").hidden = false;
-    for (const b of document.querySelectorAll(".rate-btn")) {
-      b.classList.toggle("suggested", b.dataset.rating === suggested);
-    }
-  }
-
-  // Asking to hear the word while listening means they needed help.
-  function flipByHand() {
-    if (!session) return;
-    const wasListening = !!attempt;
-    reveal(wasListening ? "again" : null);
-  }
-
-  function rate(rating) {
-    if (!session || !session.flipped) return;
-    const q = session.round.queue;
-    const item = q.shift();
-    rateCard(session.set, item.w, rating);
-    // Struggled words come back later in the same round.
-    if (rating === "again" && item.again < 3) {
-      item.again++;
-      q.splice(Math.min(3, q.length), 0, item);
-    } else if (rating === "hard" && item.hard < 1) {
-      item.hard++;
-      q.splice(Math.min(6, q.length), 0, item);
-    }
-    save();
-    showCard();
-  }
-
   // ---------- Wiring ----------
-  $("card").addEventListener("click", flipByHand);
-  $("card").addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); flipByHand(); } });
-  $("hearBtn").addEventListener("click", flipByHand);
+  $("hintBtn").addEventListener("click", hint);
   $("rateBtns").addEventListener("click", (e) => {
     const b = e.target.closest("[data-rating]");
-    if (b) rate(b.dataset.rating);
+    if (b) finish(b.dataset.rating, "tap");
   });
   $("homeBtn").addEventListener("click", renderHome);
   $("doneHome").addEventListener("click", renderHome);
   $("moreBtn").addEventListener("click", () => start(session.set, false));
   $("allBtn").addEventListener("click", () => start(session.set, true));
   $("micToggle").addEventListener("click", () => {
-    if (voice.denied) { voice.denied = false; }             // let them grant it again
+    if (voice.denied) voice.denied = false;                 // let them grant it again
     else settings.voice = settings.voice === false;
     saveSettings();
     updateMicToggle();
-    if (voiceOn()) maybeStartListening(); else stopListening();
+    if (voiceOn()) listen(); else { pauseListening(); $("listen").classList.add("idle"); }
   });
   $("reset").addEventListener("click", () => {
     if (confirm("Erase all progress and start over?")) {
@@ -357,16 +385,14 @@
   });
 
   if (isNative) {
-    try {
-      const App = Cap.registerPlugin("App");
-      // Android back button: go home instead of closing the app.
-      App.addListener("backButton", () => {
-        if (!$("home").hidden) App.exitApp(); else renderHome();
-      });
-      // Microphone is released when the app is in the background.
-      App.addListener("pause", () => { stopListening(); });
-      App.addListener("resume", () => { maybeStartListening(); });
-    } catch (_) { /* App plugin not installed */ }
+    const App = plugin("App");
+    // Android back button: go home instead of closing the app.
+    App.addListener("backButton", () => {
+      if (!$("home").hidden) App.exitApp(); else renderHome();
+    });
+    // Release the microphone in the background, pick up again on return.
+    App.addListener("pause", () => pauseListening());
+    App.addListener("resume", () => listen());
   }
 
   renderHome();

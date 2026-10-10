@@ -4,7 +4,8 @@
   "private": true,
   "description": "Simple spaced-repetition sight word flashcards for kids",
   "scripts": {
-    "sync": "npx cap sync android",
+    "copy-capacitor": "node scripts/copy-capacitor.mjs",
+    "sync": "node scripts/copy-capacitor.mjs && npx cap sync android",
     "serve": "npx --yes http-server www -p 8080 -c-1"
   },
   "dependencies": {

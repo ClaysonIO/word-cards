@@ -37,7 +37,7 @@ jobs:
       - name: Install & sync web assets into Android project
         run: |
           npm ci
-          npx cap sync android
+          npm run sync
 
       - name: Restore signing keystore from secrets
         id: keystore

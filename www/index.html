@@ -13,10 +13,13 @@
   <section id="home" class="screen">
     <h1 class="title">Word Cards</h1>
     <div id="sets" class="sets"></div>
-    <button id="reset" class="link-btn" type="button">Reset progress</button>
+    <div class="footer">
+      <div id="voiceStatus" class="voice-status"></div>
+      <button id="reset" class="link-btn" type="button">Reset progress</button>
+    </div>
   </section>
 
-  <!-- Study -->
+  <!-- Study: one-sided cards, hands-free -->
   <section id="study" class="screen" hidden>
     <header class="topbar">
       <button id="homeBtn" class="icon-btn" type="button" aria-label="Home">🏠</button>
@@ -25,23 +28,21 @@
     </header>
 
     <div class="card-area">
-      <div id="card" class="card" role="button" tabindex="0" aria-label="Flip card">
-        <div class="face front"><div class="frame"><span class="word" id="wordFront"></span></div></div>
-        <div class="face back"><div class="frame">
-          <span class="word" id="wordBack"></span>
-          <span class="speaker" aria-hidden="true">🔊</span>
+      <div id="card" class="card">
+        <div class="face"><div class="frame">
+          <span class="word" id="word"></span>
+          <button id="hintBtn" class="speaker" type="button" aria-label="Say the word">🔊</button>
         </div></div>
       </div>
     </div>
 
-    <div id="listen" class="listen" hidden>
-      <span class="mic">🎤</span>
+    <div class="listen" id="listen">
+      <span class="mic" id="micIcon">🎤</span>
       <div class="timebar"><div id="timefill" class="timefill"></div></div>
     </div>
 
     <div class="controls">
-      <button id="hearBtn" class="big-btn hear" type="button">🔊 Hear it</button>
-      <div id="rateBtns" class="rate" hidden>
+      <div id="rateBtns" class="rate">
         <button class="rate-btn again" data-rating="again" type="button"><span class="emoji">😟</span>Again</button>
         <button class="rate-btn hard"  data-rating="hard"  type="button"><span class="emoji">🤔</span>Hard</button>
         <button class="rate-btn good"  data-rating="good"  type="button"><span class="emoji">🙂</span>Good</button>
@@ -59,6 +60,7 @@
     <button id="doneHome" class="big-btn secondary" type="button">🏠 Home</button>
   </section>
 
+  <script src="capacitor.js"></script>
   <script src="words.js"></script>
   <script src="app.js"></script>
 </body>

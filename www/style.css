@@ -60,9 +60,10 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .set-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
 .set-btn .count { display: block; font-size: 1.3rem; margin-top: 8px; }
 
+.footer { margin-top: auto; text-align: center; }
+.voice-status { font-size: .95rem; opacity: .55; margin-top: 16px; }
 .link-btn {
-  margin-top: auto;
-  padding: 24px;
+  padding: 12px 24px 20px;
   background: none;
   border: none;
   font-size: .95rem;
@@ -102,18 +103,13 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   width: min(92vw, 640px);
   aspect-ratio: 3 / 2;
   max-height: 52vh;
-  transform-style: preserve-3d;
-  transition: transform .45s ease;
-  outline: none;
   container-type: size;
+  transition: transform .2s ease;
 }
-.card.flipped { transform: rotateY(180deg); }
 
 .face {
   position: absolute;
   inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
   background: var(--card-color);
   color: var(--card-ink);
   border: 7px solid var(--card-ink);
@@ -121,7 +117,6 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   padding: 10px;
   box-shadow: 0 10px 24px rgba(0,0,0,.18);
 }
-.back { transform: rotateY(180deg); }
 
 /* Decorative inner border like the printed cards */
 .frame {
@@ -151,8 +146,12 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 }
 .speaker {
   position: absolute;
-  right: 18px; bottom: 12px;
+  right: 8px; bottom: 6px;
   font-size: clamp(1.8rem, 6vw, 2.8rem);
+  background: none;
+  border: none;
+  padding: 8px;
+  opacity: .75;
 }
 
 .controls {
@@ -183,7 +182,6 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
-.rate[hidden] { display: none; }
 
 .rate-btn {
   border: 4px solid var(--ink);
@@ -195,6 +193,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   align-items: center;
   box-shadow: 0 6px 0 rgba(0,0,0,.25);
 }
+.rate-btn { transition: transform .15s; }
 .rate-btn .emoji { font-size: 2.6rem; line-height: 1.2; }
 .rate-btn.again { background: #f7a1a1; }
 .rate-btn.hard  { background: #fcd38d; }
@@ -209,7 +208,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   gap: 12px;
   margin-top: -4px;
 }
-.listen[hidden] { display: none; }
+.listen.idle { visibility: hidden; }
 .listen .mic { font-size: 2rem; animation: pulse 1.2s ease-in-out infinite; }
 .listen.heard .mic { animation-duration: .4s; }
 .timebar { flex: 1; height: 10px; border-radius: 6px; background: rgba(0,0,0,.08); overflow: hidden; }
@@ -222,12 +221,13 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .card.correct .face { box-shadow: 0 0 0 8px #4ade80, 0 10px 24px rgba(0,0,0,.18); }
 
 /* Rating chosen automatically from the voice timing */
-.rate-btn.suggested {
+.rate-btn.chosen {
   outline: 5px solid #1d1d1b;
   outline-offset: 3px;
-  animation: nudge 1s ease-in-out infinite;
+  transform: scale(1.08);
 }
-@keyframes nudge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.card.correct { transform: scale(1.04); }
+.card.missed .face { box-shadow: 0 0 0 8px #f7a1a1, 0 10px 24px rgba(0,0,0,.18); }
 
 /* ---------- Done ---------- */
 .big-btn.go { background: #a6e3a1; font-size: 2.2rem; }

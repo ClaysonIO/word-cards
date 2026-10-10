@@ -5,15 +5,18 @@
 A very simple spaced-repetition flashcard app for young readers (sight words),
 packaged as an Android app with [Capacitor](https://capacitorjs.com).
 
-- The child reads the word out loud. The app listens **on the device** (no
-  internet) and pre-selects a rating from how quickly they said it:
+- Hands-free: pick a color, then the child just reads each word out loud.
+  The app listens **on the device** (no internet), rates the answer and moves
+  to the next card by itself:
   - said it within ~2.5 s on the first try → **🤩 Easy**
   - within ~6 s, at most one wrong try → **🙂 Good**
   - got there eventually / several tries → **🤔 Hard**
-  - not said within 15 s → card flips, the word is read aloud → **😟 Again**
-- Tap **🔊 Hear it** (or the card) any time to flip it and hear the word.
-- Tap any rating button to go on (the suggested one bounces).
-- The 🎤 button in the corner turns listening on/off.
+  - not said within 15 s → the word is read aloud → **😟 Again**
+- Cards are one-sided (no flipping). The rating buttons are always on screen,
+  so a grown-up can tap one at any time to rate and move on.
+- 🔊 on the card reads the word aloud (counts as help: best rating is Hard).
+- The 🎤 button in the corner turns listening on/off. The home screen shows
+  whether voice is ready.
 - Progress is stored on the device.
 
 ### Practice rounds (not "done for the day")
