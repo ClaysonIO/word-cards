@@ -18,6 +18,9 @@ packaged as an Android app with [Capacitor](https://capacitorjs.com).
 - **Ember** the fox sits in the bottom-right corner: bouncing excitedly while
   waiting, celebrating and waving when the word is read right, and giving a
   gentle "you'll get it next time" look after Don't know.
+- Each reader picks their own fox by tapping the fox on the home screen:
+  **Ember** (classic), **Snowy** (arctic fox in a scarf), **Pixel** (8-bit),
+  **Manga** or **Origami**. The styles live in `www/avatars.js`.
 - Cards are one-sided (no flipping). With voice off, a grown-up taps 😊 or
   the card when the word was read correctly.
 - Every word is pre-recorded (see below), so it plays instantly.

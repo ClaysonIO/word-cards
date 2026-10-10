@@ -239,9 +239,45 @@
     Listener.addListener("error", (e) => setVoiceStatus("Voice error: " + e.message));
   }
 
-  // ---------- Ember the fox ----------
+  // ---------- The fox ----------
   // "wait" (excited, waiting for the word), "happy" (got it) or "sad" (didn't know it).
-  // No speech bubble: the kids can't read it yet, so Ember only acts it out.
+  // No speech bubble: the kids can't read it yet, so the fox only acts it out.
+  // Each reader picks a fox style (avatars.js); the first one is the default.
+  const avatar = () => window.AVATARS.find((a) => a.id === currentProfile().avatar) || window.AVATARS[0];
+  const foxSvg = (a) => `<svg class="fox-${a.id}" viewBox="0 0 120 140" role="img" aria-label="${a.name} the fox"` +
+    `${a.crisp ? ' shape-rendering="crispEdges"' : ""}>${a.svg}</svg>`;
+
+  function drawFox() {
+    const a = avatar();
+    if ($("ember").dataset.avatar === a.id) return;
+    $("ember").dataset.avatar = a.id;
+    $("ember").innerHTML = foxSvg(a);
+    $("foxBtn").innerHTML = foxSvg(a);
+  }
+
+  function pickFox() {
+    const box = $("foxChoices");
+    box.innerHTML = "";
+    const close = () => { $("foxDialog").hidden = true; box.innerHTML = ""; };
+    for (const a of window.AVATARS) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "fox-choice fox wait";
+      b.classList.toggle("active", a === avatar());
+      b.setAttribute("aria-pressed", String(a === avatar()));
+      b.innerHTML = `${foxSvg(a)}<span>${a.name}</span>`;
+      b.onclick = () => {
+        currentProfile().avatar = a.id;
+        saveProfiles();
+        drawFox();
+        close();
+      };
+      box.appendChild(b);
+    }
+    $("foxCancel").onclick = close;
+    $("foxDialog").hidden = false;
+  }
+
   function ember(mood) {
     const el = $("ember");
     el.classList.remove("wait", "happy", "sad");
@@ -618,6 +654,7 @@
     document.body.classList.toggle("buttons-right", right);
     $("buttonsSide").textContent = `↔ Landscape buttons: ${right ? "right" : "left"}`;
     $("buttonsSide").hidden = kidLocked;
+    drawFox();
   }
 
   // ---------- Screens ----------
@@ -676,6 +713,7 @@
   $("removeProfile").addEventListener("click", removeProfile);
   $("listenTime").addEventListener("click", setListenTime);
   $("buttonsSide").addEventListener("click", toggleButtonsSide);
+  $("foxBtn").addEventListener("click", pickFox);
   $("reset").addEventListener("click", () => {
     if (confirm(`Erase all of ${currentProfile().name}'s progress and start over?`)) {
       state = { cards: {}, rounds: {}, turn: 0 };
@@ -690,6 +728,7 @@
     // (and never close it while kid lock is on).
     App.addListener("backButton", () => {
       if (!$("pinDialog").hidden) $("pinCancel").click();
+      else if (!$("foxDialog").hidden) $("foxCancel").click();
       else if ($("home").hidden) renderHome();
       else if (!kidLocked) App.exitApp();
     });
