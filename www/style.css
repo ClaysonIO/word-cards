@@ -474,4 +474,18 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   }
   .card { width: min(100cqw, 150cqh); height: auto; max-height: none; }
   .word { font-size: min(56cqh, 25cqw); }
+
+  /* Reader setting: buttons on the right, Ember moves to the left.
+     [Ember] [card] [countdown + mic] [home / count / buttons] */
+  .buttons-right #study:not([hidden]) {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "card listen top" "card listen ctrl";
+    padding-left: max(96px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  .buttons-right .ember {
+    right: auto;
+    left: max(8px, env(safe-area-inset-left));
+    transform: scaleX(-1);
+  }
 }

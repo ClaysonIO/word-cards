@@ -507,6 +507,7 @@
     $("reset").hidden = kidLocked;
     $("removeProfile").hidden = kidLocked || profiles.list.length < 2;
     $("listenTime").hidden = kidLocked || !Listener;
+    $("buttonsSide").hidden = kidLocked;
     const add = $("profileAdd");
     if (add) add.hidden = kidLocked;
     $("changePin").hidden = kidLocked || !KidLock || !settings.kidPin;
@@ -579,6 +580,13 @@
     renderHome();
   }
 
+  function toggleButtonsSide() {
+    const p = currentProfile();
+    p.buttonsSide = p.buttonsSide === "right" ? "left" : "right";
+    saveProfiles();
+    renderHome();
+  }
+
   function removeProfile() {
     const p = currentProfile();
     if (profiles.list.length < 2 || !confirm(`Remove ${p.name} and all their progress?`)) return;
@@ -615,6 +623,11 @@
     $("removeProfile").hidden = kidLocked || profiles.list.length < 2;
     $("listenTime").textContent = `⏱ Listening time: ${listenSeconds()} s`;
     $("listenTime").hidden = kidLocked || !Listener;
+    // Which side the buttons go on in landscape (style.css), per reader.
+    const right = currentProfile().buttonsSide === "right";
+    document.body.classList.toggle("buttons-right", right);
+    $("buttonsSide").textContent = `↔ Landscape buttons: ${right ? "right" : "left"}`;
+    $("buttonsSide").hidden = kidLocked;
   }
 
   // ---------- Screens ----------
@@ -673,6 +686,7 @@
   $("changePin").addEventListener("click", choosePin);
   $("removeProfile").addEventListener("click", removeProfile);
   $("listenTime").addEventListener("click", setListenTime);
+  $("buttonsSide").addEventListener("click", toggleButtonsSide);
   $("reset").addEventListener("click", () => {
     if (confirm(`Erase all of ${currentProfile().name}'s progress and start over?`)) {
       state = { cards: {}, rounds: {}, turn: 0 };
