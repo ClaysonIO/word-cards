@@ -1,19 +1,50 @@
 # Word Cards
 
+<img src="design/icon-512.png" width="96" align="right">
+
 A very simple spaced-repetition flashcard app for young readers (sight words),
 packaged as an Android app with [Capacitor](https://capacitorjs.com).
 
-- Tap **🔊 Hear it** (or the card) to flip it and hear the word read aloud.
-- Then tap **😟 Again / 🤔 Hard / 🙂 Good / 🤩 Easy**.
-- Words come back on a schedule (simplified Anki/SM-2): "Again" repeats the
-  word later in the same session; the others push it out by days.
-- A few new words are introduced per day (`NEW_WORDS_PER_DAY`).
+- The child reads the word out loud. The app listens **on the device** (no
+  internet) and pre-selects a rating from how quickly they said it:
+  - said it within ~2.5 s on the first try → **🤩 Easy**
+  - within ~6 s, at most one wrong try → **🙂 Good**
+  - got there eventually / several tries → **🤔 Hard**
+  - not said within 15 s → card flips, the word is read aloud → **😟 Again**
+- Tap **🔊 Hear it** (or the card) any time to flip it and hear the word.
+- Tap any rating button to go on (the suggested one bounces).
+- The 🎤 button in the corner turns listening on/off.
 - Progress is stored on the device.
+
+### Practice rounds (not "done for the day")
+
+The first round goes through every word in the set. After that each round is
+built weakest-word-first: "Again" words come back 3 cards later, "Hard" words
+once more later in the round, struggling words appear every round and
+well-known words every 2–4 rounds. At the end of a round tap **Keep going**
+for another one, or **All the words** for a full pass.
+
+### Speech recognition: why Vosk
+
+Options considered (all must run fully offline, English only):
+
+| Engine | Notes |
+| --- | --- |
+| **Vosk** (Kaldi) — *chosen* | 40 MB English model, streaming results (needed to time the answer), official Android library, Apache-2.0. Can be **restricted to a word list (grammar)** so it only has to choose between the set's words and "unknown" — the biggest accuracy win for short single words from young children. |
+| Whisper tiny.en / whisper.cpp | Most accurate on kids' speech when fine-tuned (e.g. on the MyST children's corpus), but processes whole clips rather than streaming, slower on phones, no ready Android library. Good candidate if Vosk turns out to struggle. |
+| sherpa-onnx (zipformer / keyword spotting) | Modern and streaming, has keyword spotting, but integration means vendoring native libs and Kotlin sources. |
+| Android `SpeechRecognizer` | Depends on Google's recognizer/offline packs being installed; not guaranteed on-device. |
+| Picovoice, SoapBox Labs | Commercial; licence keys / cloud. SoapBox is the only child-specific engine but isn't available for this. |
+
+No openly available on-device model is trained specifically on children's
+speech, so the grammar restriction is what makes Vosk work well here.
+The model is downloaded at build time by `scripts/fetch-speech-model.sh`.
 
 ## Adding / changing words and colors
 
 Edit **`www/words.js`**. Each set has an `id`, `name`, `color`, `textColor`
-and a list of `words`. Commit and push — GitHub Actions builds a new APK.
+and a list of `words`. Voice timing thresholds (`VOICE`) and the minimum round
+size (`PRACTICE`) are at the bottom of the same file. Commit and push — GitHub Actions builds a new APK.
 
 If the voice says a word oddly, use `{ text: "read", say: "reed" }` instead of
 a plain string.
@@ -37,7 +68,9 @@ fixed key stored in repository secrets
 | `ANDROID_KEYSTORE_PASSWORD` | keystore/key password |
 | `ANDROID_KEY_ALIAS` | optional, defaults to `wordcards` |
 
-Create them once with `scripts/generate-keystore.sh` and keep a backup of the
+Until the secrets exist, CI still builds a test APK (signed with a throwaway
+key, downloadable from the workflow run's artifacts) but doesn't publish a
+release. Create them once with `scripts/generate-keystore.sh` and keep a backup of the
 keystore — losing it means uninstalling the app (and its progress) to update.
 
 ## Local development
@@ -46,4 +79,5 @@ keystore — losing it means uninstalling the app (and its progress) to update.
 npm install
 npm run serve        # open http://localhost:8080 in a browser
 npm run sync         # copy www/ into the Android project
+./scripts/fetch-speech-model.sh   # needed before building the APK locally
 ```

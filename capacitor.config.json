@@ -1,5 +1,9 @@
 {
   "appId": "com.claysonio.wordcards",
   "appName": "Word Cards",
-  "webDir": "www"
+  "webDir": "www",
+  "backgroundColor": "#f6f1e7",
+  "android": {
+    "backgroundColor": "#f6f1e7"
+  }
 }

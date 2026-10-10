@@ -201,7 +201,36 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .rate-btn.good  { background: #a6e3a1; }
 .rate-btn.easy  { background: #9fd3f7; }
 
+/* Voice: mic indicator + 15s time bar */
+.listen {
+  width: min(92vw, 640px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: -4px;
+}
+.listen[hidden] { display: none; }
+.listen .mic { font-size: 2rem; animation: pulse 1.2s ease-in-out infinite; }
+.listen.heard .mic { animation-duration: .4s; }
+.timebar { flex: 1; height: 10px; border-radius: 6px; background: rgba(0,0,0,.08); overflow: hidden; }
+.timefill { height: 100%; width: 100%; background: #7cc6f3; transform-origin: left; }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.18); opacity: 1; } }
+
+#micToggle.off { opacity: .35; }
+
+/* Success glow when the word was read aloud correctly */
+.card.correct .face { box-shadow: 0 0 0 8px #4ade80, 0 10px 24px rgba(0,0,0,.18); }
+
+/* Rating chosen automatically from the voice timing */
+.rate-btn.suggested {
+  outline: 5px solid #1d1d1b;
+  outline-offset: 3px;
+  animation: nudge 1s ease-in-out infinite;
+}
+@keyframes nudge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
 /* ---------- Done ---------- */
+.big-btn.go { background: #a6e3a1; font-size: 2.2rem; }
 #done { justify-content: center; }
 .party { font-size: 7rem; animation: pop .6s ease; }
 .done-title { font-size: 3rem; font-weight: 400; margin: 10px 0 30px; }

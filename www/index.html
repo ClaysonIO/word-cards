@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f6f1e7">
   <title>Word Cards</title>
+  <link rel="icon" href="icon.png">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,6 +21,7 @@
     <header class="topbar">
       <button id="homeBtn" class="icon-btn" type="button" aria-label="Home">🏠</button>
       <div id="left" class="left-count"></div>
+      <button id="micToggle" class="icon-btn" type="button" aria-label="Voice on/off" hidden>🎤</button>
     </header>
 
     <div class="card-area">
@@ -30,6 +32,11 @@
           <span class="speaker" aria-hidden="true">🔊</span>
         </div></div>
       </div>
+    </div>
+
+    <div id="listen" class="listen" hidden>
+      <span class="mic">🎤</span>
+      <div class="timebar"><div id="timefill" class="timefill"></div></div>
     </div>
 
     <div class="controls">
@@ -47,8 +54,9 @@
   <section id="done" class="screen" hidden>
     <div class="party">🎉</div>
     <h2 class="done-title">Great job!</h2>
-    <button id="doneHome" class="big-btn" type="button">🏠 Home</button>
-    <button id="moreBtn" class="big-btn secondary" type="button">Practice more</button>
+    <button id="moreBtn" class="big-btn go" type="button">Keep going ▶</button>
+    <button id="allBtn" class="big-btn secondary" type="button">All the words</button>
+    <button id="doneHome" class="big-btn secondary" type="button">🏠 Home</button>
   </section>
 
   <script src="words.js"></script>

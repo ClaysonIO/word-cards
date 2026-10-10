@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <!-- Rainbow: stays inside the 72dp adaptive-icon safe zone -->
+  <g fill="none" stroke-width="4.2" stroke-linecap="butt">
+    <path d="M23 60 A31 31 0 0 1 85 60" stroke="#ef4444"/>
+    <path d="M27.2 60 A26.8 26.8 0 0 1 80.8 60" stroke="#f97316"/>
+    <path d="M31.4 60 A22.6 22.6 0 0 1 76.6 60" stroke="#facc15"/>
+    <path d="M35.6 60 A18.4 18.4 0 0 1 72.4 60" stroke="#22c55e"/>
+    <path d="M39.8 60 A14.2 14.2 0 0 1 68.2 60" stroke="#3b82f6"/>
+    <path d="M44 60 A10 10 0 0 1 64 60" stroke="#8b5cf6"/>
+  </g>
+  <!-- Yellow word card -->
+  <rect x="31" y="52" width="46" height="27" rx="2.5" fill="#ecc94b" stroke="#1d1d1b" stroke-width="2.4"/>
+  <rect x="34" y="55" width="40" height="21" rx="1" fill="none" stroke="#1d1d1b" stroke-width="0.7" stroke-dasharray="0.8 1.2"/>
+  <text x="54" y="71.5" text-anchor="middle" font-family="Didact Gothic" font-size="15.5" fill="#1d1d1b" letter-spacing="0.3">ABC</text>
+</svg>

@@ -11,7 +11,8 @@
 //    textColor  Color of the word printed on the card.
 //    words      The words in the set. Adding a word later keeps the
 //               progress of all existing words. Removing a word just
-//               hides it.
+//               hides it. If the voice mispronounces a word, write
+//               { text: "read", say: "reed" } instead of "read".
 //
 //  To add a new set, copy the yellow block, give it a new id/name/color
 //  and a new word list. Then commit — GitHub Actions builds a new APK.
@@ -40,5 +41,28 @@ window.WORD_SETS = [
   // },
 ];
 
-// How many never-seen words to introduce per set per day.
-window.NEW_WORDS_PER_DAY = 8;
+// ---------------------------------------------------------------------
+//  Practice rounds
+// ---------------------------------------------------------------------
+//  The first round goes through every word in the set. After that each
+//  round is built weakest-words-first: words the child struggles with
+//  come every round, words they know well come back every few rounds.
+//  Rounds never "run out" — tap Keep going for another one.
+window.PRACTICE = {
+  minRoundSize: 8,   // a round always has at least this many words
+};
+
+// ---------------------------------------------------------------------
+//  Voice (on-device speech recognition)
+// ---------------------------------------------------------------------
+//  The app listens while the word is shown and picks a rating:
+//    said it within easySeconds, first try   -> Easy
+//    said it within goodSeconds (≤1 miss)    -> Good
+//    got it eventually / after a few tries   -> Hard
+//    not said within giveUpSeconds           -> Again (card flips, word is read aloud)
+//  The rating is only pre-selected; tap any button to move on.
+window.VOICE = {
+  easySeconds: 2.5,
+  goodSeconds: 6,
+  giveUpSeconds: 15,
+};
