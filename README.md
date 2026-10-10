@@ -11,7 +11,7 @@ packaged as an Android app with [Capacitor](https://capacitorjs.com).
   - said it within ~2.5 s on the first try → **Easy**
   - within ~6 s, at most one wrong try → **Good**
   - got there eventually / several tries → **Hard**
-  - not said within 15 s → the word is read aloud → **Again**
+  - not said within the listening time (15 s by default, set per reader on the home screen) → the word is read aloud → **Again**
 - There is just one button under the card: **Don't know**. It reads the word
   aloud and counts as Again.
 - **Ember** the fox sits in the bottom-right corner: bouncing excitedly while

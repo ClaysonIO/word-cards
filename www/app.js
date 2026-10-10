@@ -23,6 +23,10 @@
   })();
   const saveProfiles = () => { try { localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles)); } catch (_) { /* ignore */ } };
   const currentProfile = () => profiles.list.find((x) => x.id === profiles.current);
+  // How long to listen for each word before treating it as "Don't know".
+  // Each profile can set its own; VOICE.giveUpSeconds is the default.
+  const TIMER_RANGE = [5, 60];
+  const listenSeconds = () => currentProfile().listenSeconds || VOICE.giveUpSeconds;
 
   // ---------- Storage ----------
   // Progress of the current profile:
@@ -247,7 +251,7 @@
 
   // ---------- Study session ----------
   // One card at a time. The child just reads; the app listens, rates and moves on.
-  // A card "turn" = { item, t0, elapsed, hit, misses, helped, timer, raf, done, listening }
+  // A card "turn" = { item, limit (ms), t0, elapsed, hit, misses, helped, timer, raf, done, listening }
   let session = null;   // { set, round }
   let turn = null;
 
@@ -268,7 +272,7 @@
     const item = session.round.queue[0];
     if (!item) { show("done"); return; }
     $("timefill").style.setProperty("--time-left", "1");
-    turn = { item, t0: performance.now(), elapsed: 0, hit: 0, misses: 0, helped: false, timer: 0, raf: 0, done: false, listening: false };
+    turn = { item, limit: listenSeconds() * 1000, t0: performance.now(), elapsed: 0, hit: 0, misses: 0, helped: false, timer: 0, raf: 0, done: false, listening: false };
     $("card").classList.remove("correct", "missed");
     $("dontKnow").disabled = false;
     $("gotIt").disabled = false;
@@ -278,7 +282,7 @@
     listen();
   }
 
-  // Start (or resume) listening for the current card. The 15 s clock runs
+  // Start (or resume) listening for the current card. The clock runs
   // only while the microphone is actually on, picking up where it stopped.
   function listen() {
     const t = turn;
@@ -290,7 +294,7 @@
       if (turn !== t || t.done || !t.listening) { Listener.stop().catch(() => {}); return; }
       if (!t.timer) {
         t.t0 = performance.now() - t.elapsed;
-        t.timer = setTimeout(() => giveUp(t), VOICE.giveUpSeconds * 1000 - t.elapsed);
+        t.timer = setTimeout(() => giveUp(t), t.limit - t.elapsed);
         tickBar(t);
       }
       $("listen").classList.remove("idle", "heard");
@@ -311,7 +315,7 @@
     if (Listener) Listener.stop().catch(() => {});
   }
 
-  // Freeze the 15 s clock (e.g. the app went to the background). listen()
+  // Freeze the listening clock (e.g. the app went to the background). listen()
   // starts it again from the same point.
   function stopClock() {
     const t = turn;
@@ -340,7 +344,7 @@
 
   function tickBar(t) {
     if (turn !== t || t.done) return;
-    const frac = Math.min(1, (performance.now() - t.t0) / (VOICE.giveUpSeconds * 1000));
+    const frac = Math.min(1, (performance.now() - t.t0) / t.limit);
     $("timefill").style.setProperty("--time-left", String(1 - frac));
     t.raf = requestAnimationFrame(() => tickBar(t));
   }
@@ -443,17 +447,19 @@
 
   // Shows the PIN dialog. check(pin) returns an error message to keep it open,
   // or nothing to accept. Resolves with the PIN, or null when cancelled.
-  // With text set it asks for a name instead (prefilled with text.value).
+  // With text set it asks for a name instead (prefilled with text.value),
+  // or a visible number with text.numeric.
   function askPin(title, hint, check, text) {
     return new Promise((resolve) => {
       const input = $("pinInput");
       $("pinTitle").textContent = title;
       $("pinHint").textContent = hint || "";
       $("pinError").textContent = "";
+      const numeric = !text || text.numeric;
       input.type = text ? "text" : "password";
-      input.inputMode = text ? "text" : "numeric";
-      input.maxLength = text ? 20 : 8;
-      if (text) input.removeAttribute("pattern"); else input.setAttribute("pattern", "[0-9]*");
+      input.inputMode = numeric ? "numeric" : "text";
+      input.maxLength = !text ? 8 : numeric ? 3 : 20;
+      if (numeric) input.setAttribute("pattern", "[0-9]*"); else input.removeAttribute("pattern");
       input.classList.toggle("text", !!text);
       input.value = text ? text.value || "" : "";
       $("pinDialog").hidden = false;
@@ -500,6 +506,7 @@
     b.classList.toggle("locked", kidLocked);
     $("reset").hidden = kidLocked;
     $("removeProfile").hidden = kidLocked || profiles.list.length < 2;
+    $("listenTime").hidden = kidLocked || !Listener;
     const add = $("profileAdd");
     if (add) add.hidden = kidLocked;
     $("changePin").hidden = kidLocked || !KidLock || !settings.kidPin;
@@ -559,6 +566,19 @@
     renderHome();
   }
 
+  async function setListenTime() {
+    const p = currentProfile();
+    const [min, max] = TIMER_RANGE;
+    const secs = await askPin("Listening time",
+      `Seconds ${p.name} gets to read each word (${min} to ${max}).`,
+      (v) => (/^[0-9]+$/.test(v) && +v >= min && +v <= max ? "" : `Use a number from ${min} to ${max}.`),
+      { value: String(listenSeconds()), numeric: true });
+    if (secs === null) return;
+    p.listenSeconds = +secs;
+    saveProfiles();
+    renderHome();
+  }
+
   function removeProfile() {
     const p = currentProfile();
     if (profiles.list.length < 2 || !confirm(`Remove ${p.name} and all their progress?`)) return;
@@ -593,6 +613,8 @@
     box.appendChild(add);
     $("removeProfile").textContent = `Remove ${currentProfile().name}`;
     $("removeProfile").hidden = kidLocked || profiles.list.length < 2;
+    $("listenTime").textContent = `⏱ Listening time: ${listenSeconds()} s`;
+    $("listenTime").hidden = kidLocked || !Listener;
   }
 
   // ---------- Screens ----------
@@ -650,6 +672,7 @@
   $("kidLock").addEventListener("click", toggleKidLock);
   $("changePin").addEventListener("click", choosePin);
   $("removeProfile").addEventListener("click", removeProfile);
+  $("listenTime").addEventListener("click", setListenTime);
   $("reset").addEventListener("click", () => {
     if (confirm(`Erase all of ${currentProfile().name}'s progress and start over?`)) {
       state = { cards: {}, rounds: {}, turn: 0 };
