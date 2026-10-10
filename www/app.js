@@ -218,17 +218,12 @@
 
   // ---------- Ember the fox ----------
   // "wait" (excited, waiting for the word), "happy" (got it) or "sad" (didn't know it).
-  const EMBER_SAYS = {
-    happy: ["Yay!", "You got it!", "Great reading!", "Woohoo!", "Super!", "Awesome!"],
-    sad: ["That's okay!", "Good try!", "You'll get it next time!", "Let's learn it together!"],
-  };
-  const pick = (list) => list[Math.floor(Math.random() * list.length)];
+  // No speech bubble: the kids can't read it yet, so Ember only acts it out.
   function ember(mood) {
     const el = $("ember");
     el.classList.remove("wait", "happy", "sad");
     void el.offsetWidth;                         // restart the animations
     el.classList.add(mood);
-    $("emberSays").textContent = EMBER_SAYS[mood] ? pick(EMBER_SAYS[mood]) : "";
   }
 
   // ---------- Study session ----------
@@ -256,6 +251,7 @@
     turn = { item, t0: performance.now(), hit: 0, misses: 0, helped: false, timer: 0, raf: 0, done: false, listening: false };
     $("card").classList.remove("correct", "missed");
     $("dontKnow").disabled = false;
+    $("gotIt").disabled = false;
     ember("wait");
     $("word").textContent = item.w;
     $("left").textContent = `${session.round.queue.length} left`;
@@ -351,6 +347,7 @@
     pauseListening();
     $("listen").classList.add("idle");
     $("dontKnow").disabled = true;
+    $("gotIt").disabled = true;
     if (how === "voice" || how === "tap") {
       $("card").classList.add("correct");
       ember("happy");
@@ -395,6 +392,10 @@
     const b = $("micToggle");
     b.hidden = !(Listener && voice.ready);
     b.classList.toggle("off", !voiceOn());
+    b.setAttribute("aria-pressed", String(voiceOn()));
+    // Without voice nothing moves the card on by itself, so a grown-up needs
+    // a "Got it" button. With voice it would only be a distraction.
+    $("gotIt").hidden = voiceOn();
   }
 
   // ---------- Screens ----------
@@ -431,7 +432,8 @@
   // ---------- Wiring ----------
   $("hintBtn").addEventListener("click", hint);
   $("dontKnow").addEventListener("click", () => finish("again", "dontknow"));
-  // Without voice, a grown-up taps the card when the word was read correctly.
+  // Without voice, a grown-up taps "Got it" (or the card) when the word was read correctly.
+  $("gotIt").addEventListener("click", () => finish("good", "tap"));
   $("card").addEventListener("click", (e) => {
     if (!voiceOn() && !e.target.closest("#hintBtn")) finish("good", "tap");
   });

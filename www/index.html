@@ -24,7 +24,7 @@
     <header class="topbar">
       <button id="homeBtn" class="icon-btn" type="button" aria-label="Home">🏠</button>
       <div id="left" class="left-count"></div>
-      <button id="micToggle" class="icon-btn" type="button" aria-label="Voice on/off" hidden>🎤</button>
+      <button id="micToggle" class="icon-btn" type="button" aria-label="Voice on/off" aria-pressed="true" hidden>🎤</button>
     </header>
 
     <div class="card-area">
@@ -36,13 +36,14 @@
       </div>
     </div>
 
-    <div class="listen" id="listen">
+    <div class="listen idle" id="listen">
       <span class="mic" id="micIcon">🎤</span>
       <div class="timebar"><div id="timefill" class="timefill"></div></div>
     </div>
 
     <div class="controls">
       <button id="dontKnow" class="dontknow-btn" type="button">Don't know</button>
+      <button id="gotIt" class="gotit-btn" type="button" hidden>Got it ✓</button>
     </div>
   </section>
 
@@ -57,7 +58,6 @@
 
   <!-- Ember the fox: waits excitedly, celebrates, and cheers you on -->
   <div id="ember" class="ember wait" hidden>
-    <div id="emberSays" class="ember-says" aria-live="polite"></div>
     <svg viewBox="0 0 120 140" aria-label="Ember the fox" role="img">
       <g class="e-tail">
         <path d="M80 116 C104 116 120 96 114 70 C111 60 101 58 98 66 C104 82 96 100 74 104 Z" fill="#f08a3c"/>
