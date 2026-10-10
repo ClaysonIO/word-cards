@@ -1,0 +1,19 @@
+{
+  "name": "word-cards",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Simple spaced-repetition sight word flashcards for kids",
+  "scripts": {
+    "sync": "npx cap sync android",
+    "serve": "npx --yes http-server www -p 8080 -c-1"
+  },
+  "dependencies": {
+    "@capacitor-community/text-to-speech": "^8.0.2",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}

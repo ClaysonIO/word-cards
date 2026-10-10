@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f1e7">
+  <title>Word Cards</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Home: pick a color set -->
+  <section id="home" class="screen">
+    <h1 class="title">Word Cards</h1>
+    <div id="sets" class="sets"></div>
+    <button id="reset" class="link-btn" type="button">Reset progress</button>
+  </section>
+
+  <!-- Study -->
+  <section id="study" class="screen" hidden>
+    <header class="topbar">
+      <button id="homeBtn" class="icon-btn" type="button" aria-label="Home">🏠</button>
+      <div id="left" class="left-count"></div>
+    </header>
+
+    <div class="card-area">
+      <div id="card" class="card" role="button" tabindex="0" aria-label="Flip card">
+        <div class="face front"><div class="frame"><span class="word" id="wordFront"></span></div></div>
+        <div class="face back"><div class="frame">
+          <span class="word" id="wordBack"></span>
+          <span class="speaker" aria-hidden="true">🔊</span>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="hearBtn" class="big-btn hear" type="button">🔊 Hear it</button>
+      <div id="rateBtns" class="rate" hidden>
+        <button class="rate-btn again" data-rating="again" type="button"><span class="emoji">😟</span>Again</button>
+        <button class="rate-btn hard"  data-rating="hard"  type="button"><span class="emoji">🤔</span>Hard</button>
+        <button class="rate-btn good"  data-rating="good"  type="button"><span class="emoji">🙂</span>Good</button>
+        <button class="rate-btn easy"  data-rating="easy"  type="button"><span class="emoji">🤩</span>Easy</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Finished -->
+  <section id="done" class="screen" hidden>
+    <div class="party">🎉</div>
+    <h2 class="done-title">Great job!</h2>
+    <button id="doneHome" class="big-btn" type="button">🏠 Home</button>
+    <button id="moreBtn" class="big-btn secondary" type="button">Practice more</button>
+  </section>
+
+  <script src="words.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
