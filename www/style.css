@@ -39,15 +39,20 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 /* ---------- Home ---------- */
 .title { font-size: 2.6rem; font-weight: 400; margin: 24px 0; }
 
-/* Voice on/off lives on the home screen */
+/* Settings top left, kid lock top right */
 #home { position: relative; }
-.home-mic {
+
+.home-settings {
   position: absolute;
   top: max(16px, env(safe-area-inset-top));
-  right: max(16px, env(safe-area-inset-right));
+  left: max(16px, env(safe-area-inset-left));
 }
 
 #home .title { padding: 0 72px; text-align: center; }
+
+/* Voice on/off sits with the voice status at the bottom */
+.home-mic { margin-top: 20px; }
+.home-mic[hidden] { display: none; }
 
 /* Profiles: one chip per reader, tap "+" to add */
 .profiles {
@@ -104,17 +109,52 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   text-decoration: underline;
 }
 
-/* Kid lock */
-.lock-btn {
+/* ---------- Settings (current reader) ---------- */
+.settings-title { font-size: 1.8rem; font-weight: 400; margin: 0 12px; text-align: center; }
+/* Keep the header in one row, also in landscape (where the study screen's stacks) */
+#settings .topbar { width: 100%; max-width: 560px; flex-direction: row; justify-content: space-between; }
+#settings .icon-spacer { display: block; }
+.settings {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   margin-top: 20px;
-  padding: 10px 22px;
-  font-size: 1.2rem;
+}
+.setting {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 14px 16px 16px;
   background: #fff;
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+}
+.setting[hidden], .setting-btn[hidden] { display: none; }
+#settings.kid-locked .grown { display: none; }
+.setting-label { font-size: 1rem; opacity: .6; }
+.setting-btn, .seg-btn {
+  font-size: 1.4rem;
+  padding: 10px 18px;
+  background: var(--bg);
   border: 3px solid var(--ink);
   border-radius: 14px;
   box-shadow: 0 4px 0 rgba(0,0,0,.2);
 }
-.lock-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.setting-btn:active, .seg-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.setting-btn.danger { color: #b42318; border-color: #b42318; }
+.seg { display: flex; gap: 10px; }
+.seg-btn { flex: 1; }
+.seg-btn.active { background: var(--ink); color: var(--bg); }
+
+/* Kid lock */
+.lock-btn {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+}
 .lock-btn.locked { background: #fde68a; }
 
 .pin-dialog {
@@ -337,7 +377,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   .controls { padding-right: 104px; }
 }
 
-/* ---------- Ember the fox ---------- */
+/* ---------- The fox (avatars.js) ---------- */
 .ember {
   position: fixed;
   right: max(8px, env(safe-area-inset-right));
@@ -348,7 +388,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .ember[hidden] { display: none; }
 .ember svg { display: block; width: 104px; height: auto; overflow: visible; }
 
-.ember svg * { transform-box: view-box; }
+.fox svg * { transform-box: view-box; }
 .e-tail { transform-origin: 78px 110px; }
 .e-arm-l { transform-origin: 40px 100px; }
 .e-arm-r { transform-origin: 80px 100px; }
@@ -359,31 +399,36 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 
 /* Which face goes with which mood */
 .e-eyes-happy, .e-eyes-sad, .e-mouth-happy, .e-mouth-sad, .e-sparkles, .e-blush { display: none; }
-.ember.happy .e-eyes-open, .ember.happy .e-mouth-wait,
-.ember.sad .e-eyes-open, .ember.sad .e-mouth-wait { display: none; }
-.ember.happy .e-eyes-happy, .ember.happy .e-mouth-happy, .ember.happy .e-sparkles, .ember.happy .e-blush,
-.ember.sad .e-eyes-sad, .ember.sad .e-mouth-sad, .ember.sad .e-blush { display: inline; }
+.fox.happy .e-eyes-open, .fox.happy .e-mouth-wait,
+.fox.sad .e-eyes-open, .fox.sad .e-mouth-wait { display: none; }
+.fox.happy .e-eyes-happy, .fox.happy .e-mouth-happy, .fox.happy .e-sparkles, .fox.happy .e-blush,
+.fox.sad .e-eyes-sad, .fox.sad .e-mouth-sad, .fox.sad .e-blush { display: inline; }
 
 /* Waiting: bouncing on its toes, tail wagging, blinking */
-.ember.wait svg { animation: e-bounce .9s ease-in-out infinite; }
-.ember.wait .e-tail { animation: e-wag .6s ease-in-out infinite alternate; }
-.ember.wait .e-eyes-open { animation: e-blink 3.6s infinite; }
-.ember.wait .e-ear-l { animation: e-twitch 2.4s ease-in-out infinite; }
-.ember.wait .e-arm-l { animation: e-swing-l .9s ease-in-out infinite alternate; }
-.ember.wait .e-arm-r { animation: e-swing-r .9s ease-in-out infinite alternate; }
+.fox.wait svg { animation: e-bounce .9s ease-in-out infinite; }
+.fox.wait .e-tail { animation: e-wag .6s ease-in-out infinite alternate; }
+.fox.wait .e-eyes-open { animation: e-blink 3.6s infinite; }
+.fox.wait .e-ear-l { animation: e-twitch 2.4s ease-in-out infinite; }
+.fox.wait .e-arm-l { animation: e-swing-l .9s ease-in-out infinite alternate; }
+.fox.wait .e-arm-r { animation: e-swing-r .9s ease-in-out infinite alternate; }
 
 /* Happy: jumping, waving both arms, sparkles */
-.ember.happy svg { animation: e-jump .5s ease-out 3; }
-.ember.happy .e-tail { animation: e-wag .2s ease-in-out infinite alternate; }
-.ember.happy .e-arm-l { animation: e-wave-l .3s ease-in-out infinite alternate; }
-.ember.happy .e-arm-r { animation: e-wave-r .3s ease-in-out infinite alternate; }
-.ember.happy .e-sparkles { animation: e-sparkle .5s ease-in-out infinite alternate; transform-origin: 60px 70px; }
+.fox.happy svg { animation: e-jump .5s ease-out 3; }
+.fox.happy .e-tail { animation: e-wag .2s ease-in-out infinite alternate; }
+.fox.happy .e-arm-l { animation: e-wave-l .3s ease-in-out infinite alternate; }
+.fox.happy .e-arm-r { animation: e-wave-r .3s ease-in-out infinite alternate; }
+.fox.happy .e-sparkles { animation: e-sparkle .5s ease-in-out infinite alternate; transform-origin: 60px 70px; }
 
 /* Sad but encouraging: head tilted, ears droop, a gentle smile */
-.ember.sad .e-head { transform: rotate(-9deg) translateY(2px); transition: transform .3s; }
-.ember.sad .e-ear-l { transform: rotate(-22deg); }
-.ember.sad .e-ear-r { transform: rotate(22deg); }
-.ember.sad .e-tail { transform: rotate(18deg); animation: e-sway 2s ease-in-out infinite alternate; }
+.fox.sad .e-head { transform: rotate(-9deg) translateY(2px); transition: transform .3s; }
+.fox.sad .e-ear-l { transform: rotate(-22deg); }
+.fox.sad .e-ear-r { transform: rotate(22deg); }
+.fox.sad .e-tail { transform: rotate(18deg); animation: e-sway 2s ease-in-out infinite alternate; }
+/* Pixel fox: stay on the pixel grid, so droop instead of tilting */
+.fox.sad .fox-pixel .e-head { transform: translateY(5px); }
+.fox.sad .fox-pixel .e-ear-l { transform: translate(-5px, 5px); }
+.fox.sad .fox-pixel .e-ear-r { transform: translate(5px, 5px); }
+.fox.sad .fox-pixel .e-tail { transform: translateY(10px); animation: none; }
 
 @keyframes e-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes e-wag { from { transform: rotate(-10deg); } to { transform: rotate(12deg); } }
@@ -402,8 +447,30 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 @keyframes e-sway { from { transform: rotate(14deg); } to { transform: rotate(22deg); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .ember svg, .ember svg * { animation-iteration-count: 1 !important; }
+  .fox svg, .fox svg * { animation-iteration-count: 1 !important; }
 }
+
+/* Fox choices on the settings screen, every style waiting excitedly */
+.fox-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 12px;
+}
+.fox-choice {
+  display: flex;
+  justify-content: flex-end;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px 8px;
+  background: var(--bg);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 0 rgba(0,0,0,.2);
+}
+.fox-choice.active { background: #fde68a; }
+.fox-choice svg { display: block; width: 72px; height: auto; overflow: visible; }
 
 /* ---------- Done ---------- */
 .big-btn.go { background: #a6e3a1; font-size: 2.2rem; }
@@ -430,6 +497,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   .icon-spacer { width: 52px; }
   .profiles { margin-bottom: 10px; }
   .profile-btn { font-size: 1.2rem; padding: 4px 16px; }
+  .fox-choice svg { width: 56px; }
 }
 
 /* Landscape: the card takes the full height, everything else moves to the
