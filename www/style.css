@@ -39,6 +39,39 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 /* ---------- Home ---------- */
 .title { font-size: 2.6rem; font-weight: 400; margin: 24px 0; }
 
+/* Voice on/off lives on the home screen */
+#home { position: relative; }
+.home-mic {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+}
+
+#home .title { padding: 0 72px; text-align: center; }
+
+/* Profiles: one chip per reader, tap "+" to add */
+.profiles {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.profile-btn {
+  font-size: 1.4rem;
+  padding: 8px 20px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 4px 0 rgba(0,0,0,.2);
+}
+.profile-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.2); }
+.profile-btn.active { background: var(--ink); color: var(--bg); }
+.profile-btn.add { min-width: 52px; font-size: 1.6rem; line-height: 1; opacity: .7; }
+.profile-btn[hidden] { display: none; }
+
 .sets {
   width: 100%;
   max-width: 520px;
@@ -121,6 +154,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   border-radius: 12px;
   background: #fff;
 }
+.pin-input.text { letter-spacing: normal; font-size: 1.6rem; }
 .pin-error { min-height: 1.4em; margin: 8px 0; color: #b42318; }
 .pin-actions { display: flex; flex-wrap: wrap; justify-content: center; }
 .pin-box .pin-actions .big-btn { min-width: 0; flex: 1 1 120px; font-size: 1.4rem; padding: 12px 20px; margin: 6px; }
@@ -141,6 +175,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   width: 68px; height: 68px;
 }
 .left-count { font-size: 1.6rem; }
+.icon-spacer { width: 68px; }
 
 .card-area {
   flex: 1;
@@ -244,11 +279,10 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .listen .mic { font-size: 2rem; animation: pulse 1.2s ease-in-out infinite; }
 .listen.heard .mic { animation-duration: .4s; }
 .timebar { flex: 1; height: 10px; border-radius: 6px; background: rgba(0,0,0,.08); overflow: hidden; }
-.timefill { height: 100%; width: 100%; background: #7cc6f3; transform-origin: left; }
+.timefill { height: 100%; width: 100%; background: #7cc6f3; transform-origin: left; transform: scaleX(var(--time-left, 1)); }
 @keyframes pulse { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.18); opacity: 1; } }
 
 /* Muted: a big red "no" sign over the mic */
-#micToggle { position: relative; }
 #micToggle.off { background: #ffe4e6; border-color: #e11d2e; }
 #micToggle.off::after {
   content: "";
@@ -381,4 +415,63 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   .big-btn { padding: 10px 30px; font-size: 1.6rem; margin: 4px; }
   .dontknow-btn, .gotit-btn { padding: 8px 28px; font-size: 1.5rem; }
   .ember svg { width: 82px; }
+}
+@media (max-height: 500px) {
+  .icon-spacer { width: 52px; }
+  .profiles { margin-bottom: 10px; }
+  .profile-btn { font-size: 1.2rem; padding: 4px 16px; }
+}
+
+/* Landscape: the card takes the full height, everything else moves to the
+   sides and the countdown runs top to bottom next to the card.
+   [home / count / buttons] [mic + countdown] [card] [Ember] */
+@media (orientation: landscape) and (min-aspect-ratio: 4/3) {
+  #study:not([hidden]) {
+    height: 100%;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "top listen card" "ctrl listen card";
+    column-gap: 16px;
+    align-items: stretch;
+    padding: max(10px, env(safe-area-inset-top)) max(96px, env(safe-area-inset-right))
+             max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+  .topbar {
+    grid-area: top;
+    width: auto;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+  .icon-spacer { display: none; }
+  .left-count { font-size: 1.4rem; }
+  .controls {
+    grid-area: ctrl;
+    width: auto;
+    min-height: 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 0;
+  }
+  .dontknow-btn, .gotit-btn { font-size: 1.4rem; padding: 10px 18px; }
+  .listen {
+    grid-area: listen;
+    width: auto;
+    margin: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .listen .mic { font-size: 1.6rem; }
+  .timebar { flex: 1; width: 12px; height: auto; }
+  .timefill { transform-origin: bottom; transform: scaleY(var(--time-left, 1)); }
+  .card-area {
+    grid-area: card;
+    padding: 0;
+    container-type: size;
+  }
+  .card { width: min(100cqw, 150cqh); height: auto; max-height: none; }
+  .word { font-size: min(56cqh, 25cqw); }
 }
