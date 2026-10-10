@@ -14,10 +14,27 @@
     <h1 class="title">Word Cards</h1>
     <div id="sets" class="sets"></div>
     <div class="footer">
+      <button id="kidLock" class="lock-btn" type="button" hidden>🔒 Kid lock</button>
       <div id="voiceStatus" class="voice-status"></div>
       <button id="reset" class="link-btn" type="button">Reset progress</button>
+      <button id="changePin" class="link-btn" type="button" hidden>Change PIN</button>
     </div>
   </section>
+
+  <!-- Grown-up PIN for the kid lock -->
+  <div id="pinDialog" class="pin-dialog" hidden>
+    <form id="pinForm" class="pin-box">
+      <h2 id="pinTitle" class="pin-title"></h2>
+      <p id="pinHint" class="pin-hint"></p>
+      <input id="pinInput" class="pin-input" type="password" inputmode="numeric" pattern="[0-9]*"
+             autocomplete="off" maxlength="8" aria-labelledby="pinTitle">
+      <div id="pinError" class="pin-error" aria-live="polite"></div>
+      <div class="pin-actions">
+        <button id="pinCancel" class="big-btn secondary" type="button">Cancel</button>
+        <button class="big-btn go" type="submit">OK</button>
+      </div>
+    </form>
+  </div>
 
   <!-- Study: one-sided cards, hands-free -->
   <section id="study" class="screen" hidden>
