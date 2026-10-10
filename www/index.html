@@ -53,7 +53,6 @@
       <div id="card" class="card">
         <div class="face"><div class="frame">
           <span class="word" id="word"></span>
-          <button id="hintBtn" class="speaker" type="button" aria-label="Say the word">🔊</button>
         </div></div>
       </div>
     </div>
@@ -64,8 +63,13 @@
     </div>
 
     <div class="controls">
-      <button id="dontKnow" class="dontknow-btn" type="button">Don't know</button>
-      <button id="gotIt" class="gotit-btn" type="button" hidden>Got it ✓</button>
+      <!-- Picture-only buttons: the kids can't read yet -->
+      <button id="dontKnow" class="dontknow-btn" type="button" aria-label="Don't know (hear the word)">
+        <span class="q q1" aria-hidden="true">?</span><span class="btn-icon" aria-hidden="true">🤷</span><span class="q q2" aria-hidden="true">?</span>
+      </button>
+      <button id="gotIt" class="gotit-btn" type="button" aria-label="Got it" hidden>
+        <span class="btn-icon" aria-hidden="true">😊</span>
+      </button>
     </div>
   </section>
 

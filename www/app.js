@@ -251,7 +251,7 @@
 
   // ---------- Study session ----------
   // One card at a time. The child just reads; the app listens, rates and moves on.
-  // A card "turn" = { item, limit (ms), t0, elapsed, hit, misses, helped, timer, raf, done, listening }
+  // A card "turn" = { item, limit (ms), t0, elapsed, hit, misses, timer, raf, done, listening }
   let session = null;   // { set, round }
   let turn = null;
 
@@ -272,7 +272,7 @@
     const item = session.round.queue[0];
     if (!item) { show("done"); return; }
     $("timefill").style.setProperty("--time-left", "1");
-    turn = { item, limit: listenSeconds() * 1000, t0: performance.now(), elapsed: 0, hit: 0, misses: 0, helped: false, timer: 0, raf: 0, done: false, listening: false };
+    turn = { item, limit: listenSeconds() * 1000, t0: performance.now(), elapsed: 0, hit: 0, misses: 0, timer: 0, raf: 0, done: false, listening: false };
     $("card").classList.remove("correct", "missed");
     $("dontKnow").disabled = false;
     $("gotIt").disabled = false;
@@ -360,8 +360,8 @@
       if (final) {
         const secs = (t.hit - t.t0) / 1000;
         let rating = "hard";
-        if (!t.helped && t.misses === 0 && secs <= VOICE.easySeconds) rating = "easy";
-        else if (!t.helped && t.misses <= 1 && secs <= VOICE.goodSeconds) rating = "good";
+        if (t.misses === 0 && secs <= VOICE.easySeconds) rating = "easy";
+        else if (t.misses <= 1 && secs <= VOICE.goodSeconds) rating = "good";
         finish(rating, "voice");
       }
     } else if (final) {
@@ -401,16 +401,6 @@
     }
     if (turn !== t || $("study").hidden) return;   // left the screen meanwhile
     rate(rating);
-  }
-
-  // 🔊 on the card: read the word aloud. Needing help caps the rating at Hard.
-  async function hint() {
-    const t = turn;
-    if (!t || t.done) return;
-    t.helped = true;
-    pauseListening();
-    await speak(wordSay(findWord(session.set, t.item.w) || t.item.w));
-    if (turn === t && !t.done) listen();
   }
 
   function rate(rating) {
@@ -665,12 +655,11 @@
   }
 
   // ---------- Wiring ----------
-  $("hintBtn").addEventListener("click", hint);
   $("dontKnow").addEventListener("click", () => finish("again", "dontknow"));
   // Without voice, a grown-up taps "Got it" (or the card) when the word was read correctly.
   $("gotIt").addEventListener("click", () => finish("good", "tap"));
   $("card").addEventListener("click", (e) => {
-    if (!voiceOn() && !e.target.closest("#hintBtn")) finish("good", "tap");
+    if (!voiceOn()) finish("good", "tap");
   });
   $("homeBtn").addEventListener("click", renderHome);
   $("doneHome").addEventListener("click", renderHome);
