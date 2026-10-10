@@ -84,3 +84,7 @@ npm run serve        # open http://localhost:8080 in a browser
 npm run sync         # copy www/ into the Android project
 ./scripts/fetch-speech-model.sh   # needed before building the APK locally
 ```
+
+## License
+
+MIT, see [LICENSE](LICENSE). Bundled third-party parts keep their own licenses: Didact Gothic font (SIL OFL, `www/fonts/`), Vosk speech model and library (Apache 2.0), Capacitor (MIT).
