@@ -66,5 +66,5 @@ window.PRACTICE = {
 window.VOICE = {
   easySeconds: 2.5,
   goodSeconds: 6,
-  giveUpSeconds: 15,
+  giveUpSeconds: 15,   // default; each reader can change it on the home screen
 };

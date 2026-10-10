@@ -11,17 +11,22 @@
 <body>
   <!-- Home: pick a color set -->
   <section id="home" class="screen">
+    <button id="micToggle" class="icon-btn home-mic" type="button" aria-label="Voice on/off" aria-pressed="true" hidden>🎤</button>
     <h1 class="title">Word Cards</h1>
+    <div id="profiles" class="profiles"></div>
     <div id="sets" class="sets"></div>
     <div class="footer">
       <button id="kidLock" class="lock-btn" type="button" hidden>🔒 Kid lock</button>
       <div id="voiceStatus" class="voice-status"></div>
+      <button id="listenTime" class="link-btn" type="button" hidden></button>
+      <button id="buttonsSide" class="link-btn" type="button" hidden></button>
       <button id="reset" class="link-btn" type="button">Reset progress</button>
       <button id="changePin" class="link-btn" type="button" hidden>Change PIN</button>
+      <button id="removeProfile" class="link-btn" type="button" hidden></button>
     </div>
   </section>
 
-  <!-- Grown-up PIN for the kid lock -->
+  <!-- Grown-up PIN for the kid lock (also used to name profiles) -->
   <div id="pinDialog" class="pin-dialog" hidden>
     <form id="pinForm" class="pin-box">
       <h2 id="pinTitle" class="pin-title"></h2>
@@ -41,14 +46,13 @@
     <header class="topbar">
       <button id="homeBtn" class="icon-btn" type="button" aria-label="Home">🏠</button>
       <div id="left" class="left-count"></div>
-      <button id="micToggle" class="icon-btn" type="button" aria-label="Voice on/off" aria-pressed="true" hidden>🎤</button>
+      <span class="icon-spacer"></span>
     </header>
 
     <div class="card-area">
       <div id="card" class="card">
         <div class="face"><div class="frame">
           <span class="word" id="word"></span>
-          <button id="hintBtn" class="speaker" type="button" aria-label="Say the word">🔊</button>
         </div></div>
       </div>
     </div>
@@ -59,8 +63,13 @@
     </div>
 
     <div class="controls">
-      <button id="dontKnow" class="dontknow-btn" type="button">Don't know</button>
-      <button id="gotIt" class="gotit-btn" type="button" hidden>Got it ✓</button>
+      <!-- Picture-only buttons: the kids can't read yet -->
+      <button id="dontKnow" class="dontknow-btn" type="button" aria-label="Don't know (hear the word)">
+        <span class="q q1" aria-hidden="true">?</span><span class="btn-icon" aria-hidden="true">🤷</span><span class="q q2" aria-hidden="true">?</span>
+      </button>
+      <button id="gotIt" class="gotit-btn" type="button" aria-label="Got it" hidden>
+        <span class="btn-icon" aria-hidden="true">😊</span>
+      </button>
     </div>
   </section>
 

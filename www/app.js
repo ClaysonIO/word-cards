@@ -6,7 +6,30 @@
   const VOICE = Object.assign({ easySeconds: 2.5, goodSeconds: 6, giveUpSeconds: 15 }, window.VOICE);
   const MAX_BOX = 5;
 
+  // ---------- Profiles ----------
+  // Each reader has their own progress. The first profile keeps the original
+  // storage key, so progress saved before profiles existed carries over.
+  const PROFILES_KEY = "wordcards.profiles";
+  const progressKey = (id) => (id === "p0" ? STORE_KEY : `${STORE_KEY}.${id}`);
+  const profiles = (() => {
+    try {
+      const p = JSON.parse(localStorage.getItem(PROFILES_KEY));
+      if (p && p.list && p.list.length) {
+        if (!p.list.some((x) => x.id === p.current)) p.current = p.list[0].id;
+        return p;
+      }
+    } catch (_) { /* ignore */ }
+    return { list: [{ id: "p0", name: "Reader 1" }], current: "p0" };
+  })();
+  const saveProfiles = () => { try { localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles)); } catch (_) { /* ignore */ } };
+  const currentProfile = () => profiles.list.find((x) => x.id === profiles.current);
+  // How long to listen for each word before treating it as "Don't know".
+  // Each profile can set its own; VOICE.giveUpSeconds is the default.
+  const TIMER_RANGE = [5, 60];
+  const listenSeconds = () => currentProfile().listenSeconds || VOICE.giveUpSeconds;
+
   // ---------- Storage ----------
+  // Progress of the current profile:
   // state = {
   //   cards:  { "<setId>:<word>": { box 0-5, lapses, seen, skipped, last } },
   //   rounds: { "<setId>": { queue: [{ w: "make", again: 0, hard: 0 }], total } },
@@ -14,13 +37,13 @@
   // }
   function load() {
     try {
-      const s = JSON.parse(localStorage.getItem(STORE_KEY));
+      const s = JSON.parse(localStorage.getItem(progressKey(profiles.current)));
       if (s && s.cards) return { cards: s.cards, rounds: s.rounds || {}, turn: s.turn || 0 };
     } catch (_) { /* ignore */ }
     return { cards: {}, rounds: {}, turn: 0 };
   }
   function save() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (_) { /* ignore */ }
+    try { localStorage.setItem(progressKey(profiles.current), JSON.stringify(state)); } catch (_) { /* ignore */ }
   }
   let state = load();
 
@@ -228,7 +251,7 @@
 
   // ---------- Study session ----------
   // One card at a time. The child just reads; the app listens, rates and moves on.
-  // A card "turn" = { item, t0, hit, misses, helped, timer, raf, done, listening }
+  // A card "turn" = { item, limit (ms), t0, elapsed, hit, misses, timer, raf, done, listening }
   let session = null;   // { set, round }
   let turn = null;
 
@@ -248,7 +271,8 @@
     endTurn();
     const item = session.round.queue[0];
     if (!item) { show("done"); return; }
-    turn = { item, t0: performance.now(), hit: 0, misses: 0, helped: false, timer: 0, raf: 0, done: false, listening: false };
+    $("timefill").style.setProperty("--time-left", "1");
+    turn = { item, limit: listenSeconds() * 1000, t0: performance.now(), elapsed: 0, hit: 0, misses: 0, timer: 0, raf: 0, done: false, listening: false };
     $("card").classList.remove("correct", "missed");
     $("dontKnow").disabled = false;
     $("gotIt").disabled = false;
@@ -258,8 +282,8 @@
     listen();
   }
 
-  // Start (or resume) listening for the current card. The 15 s clock starts
-  // the first time the microphone is actually on.
+  // Start (or resume) listening for the current card. The clock runs
+  // only while the microphone is actually on, picking up where it stopped.
   function listen() {
     const t = turn;
     if (!t || t.done || t.listening || !voiceOn() || $("study").hidden) return;
@@ -269,8 +293,8 @@
     Listener.start({ words }).then(() => {
       if (turn !== t || t.done || !t.listening) { Listener.stop().catch(() => {}); return; }
       if (!t.timer) {
-        t.t0 = performance.now();
-        t.timer = setTimeout(() => giveUp(t), VOICE.giveUpSeconds * 1000);
+        t.t0 = performance.now() - t.elapsed;
+        t.timer = setTimeout(() => giveUp(t), t.limit - t.elapsed);
         tickBar(t);
       }
       $("listen").classList.remove("idle", "heard");
@@ -291,6 +315,23 @@
     if (Listener) Listener.stop().catch(() => {});
   }
 
+  // Freeze the listening clock (e.g. the app went to the background). listen()
+  // starts it again from the same point.
+  function stopClock() {
+    const t = turn;
+    if (!t || t.done || !t.timer) return;
+    t.elapsed = performance.now() - t.t0;
+    clearTimeout(t.timer);
+    cancelAnimationFrame(t.raf);
+    t.timer = 0;
+    t.hit = 0;
+  }
+
+  function toBackground() {
+    stopClock();
+    pauseListening();
+  }
+
   function endTurn() {
     if (!turn) return;
     turn.done = true;
@@ -303,8 +344,8 @@
 
   function tickBar(t) {
     if (turn !== t || t.done) return;
-    const frac = Math.min(1, (performance.now() - t.t0) / (VOICE.giveUpSeconds * 1000));
-    $("timefill").style.transform = `scaleX(${1 - frac})`;
+    const frac = Math.min(1, (performance.now() - t.t0) / t.limit);
+    $("timefill").style.setProperty("--time-left", String(1 - frac));
     t.raf = requestAnimationFrame(() => tickBar(t));
   }
 
@@ -319,8 +360,8 @@
       if (final) {
         const secs = (t.hit - t.t0) / 1000;
         let rating = "hard";
-        if (!t.helped && t.misses === 0 && secs <= VOICE.easySeconds) rating = "easy";
-        else if (!t.helped && t.misses <= 1 && secs <= VOICE.goodSeconds) rating = "good";
+        if (t.misses === 0 && secs <= VOICE.easySeconds) rating = "easy";
+        else if (t.misses <= 1 && secs <= VOICE.goodSeconds) rating = "good";
         finish(rating, "voice");
       }
     } else if (final) {
@@ -362,16 +403,6 @@
     rate(rating);
   }
 
-  // 🔊 on the card: read the word aloud. Needing help caps the rating at Hard.
-  async function hint() {
-    const t = turn;
-    if (!t || t.done) return;
-    t.helped = true;
-    pauseListening();
-    await speak(wordSay(findWord(session.set, t.item.w) || t.item.w));
-    if (turn === t && !t.done) listen();
-  }
-
   function rate(rating) {
     const q = session.round.queue;
     const item = q.shift();
@@ -406,13 +437,21 @@
 
   // Shows the PIN dialog. check(pin) returns an error message to keep it open,
   // or nothing to accept. Resolves with the PIN, or null when cancelled.
-  function askPin(title, hint, check) {
+  // With text set it asks for a name instead (prefilled with text.value),
+  // or a visible number with text.numeric.
+  function askPin(title, hint, check, text) {
     return new Promise((resolve) => {
       const input = $("pinInput");
       $("pinTitle").textContent = title;
       $("pinHint").textContent = hint || "";
       $("pinError").textContent = "";
-      input.value = "";
+      const numeric = !text || text.numeric;
+      input.type = text ? "text" : "password";
+      input.inputMode = numeric ? "numeric" : "text";
+      input.maxLength = !text ? 8 : numeric ? 3 : 20;
+      if (numeric) input.setAttribute("pattern", "[0-9]*"); else input.removeAttribute("pattern");
+      input.classList.toggle("text", !!text);
+      input.value = text ? text.value || "" : "";
       $("pinDialog").hidden = false;
       input.focus();
       const close = (result) => {
@@ -424,8 +463,9 @@
       };
       $("pinForm").onsubmit = (e) => {
         e.preventDefault();
-        const error = check(input.value);
-        if (!error) { close(input.value); return; }
+        const value = text ? input.value.trim() : input.value;
+        const error = check(value);
+        if (!error) { close(value); return; }
         $("pinError").textContent = error;
         input.value = "";
         input.focus();
@@ -455,6 +495,11 @@
     b.textContent = kidLocked ? "🔓 Unlock (grown-ups)" : "🔒 Kid lock";
     b.classList.toggle("locked", kidLocked);
     $("reset").hidden = kidLocked;
+    $("removeProfile").hidden = kidLocked || profiles.list.length < 2;
+    $("listenTime").hidden = kidLocked || !Listener;
+    $("buttonsSide").hidden = kidLocked;
+    const add = $("profileAdd");
+    if (add) add.hidden = kidLocked;
     $("changePin").hidden = kidLocked || !KidLock || !settings.kidPin;
   }
 
@@ -477,6 +522,104 @@
     refreshKidLock();
   }
 
+  // ---------- Profile management ----------
+  function nameRule(except) {
+    return (name) => {
+      if (!name) return "Type a name.";
+      const taken = profiles.list.some((x) => x !== except && x.name.toLowerCase() === name.toLowerCase());
+      return taken ? "That name is already used." : "";
+    };
+  }
+
+  function switchProfile(id) {
+    endTurn();
+    session = null;
+    profiles.current = id;
+    saveProfiles();
+    state = load();
+    renderHome();
+  }
+
+  async function addProfile() {
+    const name = await askPin("New reader", "Who is reading?", nameRule(null), { value: "" });
+    if (name === null) return;
+    const id = "p" + Date.now().toString(36);
+    profiles.list.push({ id, name });
+    switchProfile(id);
+  }
+
+  async function renameProfile() {
+    const p = currentProfile();
+    const name = await askPin("Change name", "", nameRule(p), { value: p.name });
+    if (name === null) return;
+    p.name = name;
+    saveProfiles();
+    renderHome();
+  }
+
+  async function setListenTime() {
+    const p = currentProfile();
+    const [min, max] = TIMER_RANGE;
+    const secs = await askPin("Listening time",
+      `Seconds ${p.name} gets to read each word (${min} to ${max}).`,
+      (v) => (/^[0-9]+$/.test(v) && +v >= min && +v <= max ? "" : `Use a number from ${min} to ${max}.`),
+      { value: String(listenSeconds()), numeric: true });
+    if (secs === null) return;
+    p.listenSeconds = +secs;
+    saveProfiles();
+    renderHome();
+  }
+
+  function toggleButtonsSide() {
+    const p = currentProfile();
+    p.buttonsSide = p.buttonsSide === "right" ? "left" : "right";
+    saveProfiles();
+    renderHome();
+  }
+
+  function removeProfile() {
+    const p = currentProfile();
+    if (profiles.list.length < 2 || !confirm(`Remove ${p.name} and all their progress?`)) return;
+    try { localStorage.removeItem(progressKey(p.id)); } catch (_) { /* ignore */ }
+    profiles.list = profiles.list.filter((x) => x !== p);
+    switchProfile(profiles.list[0].id);
+  }
+
+  function renderProfiles() {
+    const box = $("profiles");
+    box.innerHTML = "";
+    for (const p of profiles.list) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "profile-btn";
+      const active = p.id === profiles.current;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-pressed", String(active));
+      b.textContent = p.name;
+      // Tapping the selected reader again renames it (grown-ups only).
+      b.onclick = () => (!active ? switchProfile(p.id) : kidLocked ? null : renameProfile());
+      box.appendChild(b);
+    }
+    const add = document.createElement("button");
+    add.type = "button";
+    add.id = "profileAdd";
+    add.className = "profile-btn add";
+    add.setAttribute("aria-label", "Add a reader");
+    add.textContent = "+";
+    add.hidden = kidLocked;
+    add.onclick = addProfile;
+    box.appendChild(add);
+    $("removeProfile").textContent = `Remove ${currentProfile().name}`;
+    $("removeProfile").hidden = kidLocked || profiles.list.length < 2;
+    $("listenTime").textContent = `⏱ Listening time: ${listenSeconds()} s`;
+    $("listenTime").hidden = kidLocked || !Listener;
+    // Which side the buttons go on in landscape (style.css), per reader.
+    const right = currentProfile().buttonsSide === "right";
+    document.body.classList.toggle("buttons-right", right);
+    $("buttonsSide").textContent = `↔ Landscape buttons: ${right ? "right" : "left"}`;
+    $("buttonsSide").hidden = kidLocked;
+  }
+
   // ---------- Screens ----------
   function show(name) {
     for (const s of ["home", "study", "done"]) $(s).hidden = s !== name;
@@ -487,6 +630,7 @@
   function renderHome() {
     endTurn();
     stopSpeaking();
+    renderProfiles();
     const box = $("sets");
     box.innerHTML = "";
     for (const set of window.WORD_SETS) {
@@ -505,17 +649,17 @@
       box.appendChild(b);
     }
     $("voiceStatus").textContent = voice.status;
+    updateMicToggle();
     show("home");
     refreshKidLock();
   }
 
   // ---------- Wiring ----------
-  $("hintBtn").addEventListener("click", hint);
   $("dontKnow").addEventListener("click", () => finish("again", "dontknow"));
   // Without voice, a grown-up taps "Got it" (or the card) when the word was read correctly.
   $("gotIt").addEventListener("click", () => finish("good", "tap"));
   $("card").addEventListener("click", (e) => {
-    if (!voiceOn() && !e.target.closest("#hintBtn")) finish("good", "tap");
+    if (!voiceOn()) finish("good", "tap");
   });
   $("homeBtn").addEventListener("click", renderHome);
   $("doneHome").addEventListener("click", renderHome);
@@ -526,12 +670,14 @@
     else settings.voice = settings.voice === false;
     saveSettings();
     updateMicToggle();
-    if (voiceOn()) listen(); else { pauseListening(); $("listen").classList.add("idle"); }
   });
   $("kidLock").addEventListener("click", toggleKidLock);
   $("changePin").addEventListener("click", choosePin);
+  $("removeProfile").addEventListener("click", removeProfile);
+  $("listenTime").addEventListener("click", setListenTime);
+  $("buttonsSide").addEventListener("click", toggleButtonsSide);
   $("reset").addEventListener("click", () => {
-    if (confirm("Erase all progress and start over?")) {
+    if (confirm(`Erase all of ${currentProfile().name}'s progress and start over?`)) {
       state = { cards: {}, rounds: {}, turn: 0 };
       save();
       renderHome();
@@ -547,10 +693,14 @@
       else if ($("home").hidden) renderHome();
       else if (!kidLocked) App.exitApp();
     });
-    // Release the microphone in the background, pick up again on return.
-    App.addListener("pause", () => pauseListening());
+    // Release the microphone and stop the clock in the background,
+    // pick up again on return.
+    App.addListener("pause", toBackground);
     App.addListener("resume", () => { listen(); refreshKidLock(); });
   }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) toBackground(); else listen();
+  });
 
   // Android can also pin/unpin from outside the app (its "Pin this app?"
   // prompt, or the system unpin gesture), so keep the home screen in sync.

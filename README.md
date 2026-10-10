@@ -11,15 +11,15 @@ packaged as an Android app with [Capacitor](https://capacitorjs.com).
   - said it within ~2.5 s on the first try → **Easy**
   - within ~6 s, at most one wrong try → **Good**
   - got there eventually / several tries → **Hard**
-  - not said within 15 s → the word is read aloud → **Again**
-- There is just one button under the card: **Don't know**. It reads the word
-  aloud and counts as Again.
+  - not said within the listening time (15 s by default, set per reader on the home screen) → the word is read aloud → **Again**
+- The buttons under the card are pictures, since the kids can't read yet:
+  **🤷 with question marks** (Don't know) reads the word aloud and counts as
+  Again; **😊** (Got it, only shown with voice off) counts as Good.
 - **Ember** the fox sits in the bottom-right corner: bouncing excitedly while
   waiting, celebrating and waving when the word is read right, and giving a
   gentle "you'll get it next time" look after Don't know.
-- Cards are one-sided (no flipping). 🔊 on the card reads the word aloud
-  (counts as help: best rating is Hard). With voice off, a grown-up taps the
-  card when the word was read correctly.
+- Cards are one-sided (no flipping). With voice off, a grown-up taps 😊 or
+  the card when the word was read correctly.
 - Every word is pre-recorded (see below), so it plays instantly.
 - The 🎤 button in the corner turns listening on/off. The home screen shows
   whether voice is ready.
@@ -80,7 +80,7 @@ a plain string.
 Each word is recorded ahead of time into `www/audio/<word>.mp3` with
 [Piper](https://github.com/rhasspy/piper) (offline neural text-to-speech,
 voice `en-us-lessac-medium`). The app decodes them all into memory when it
-opens, so pressing 🔊 or Don't know plays the word immediately instead of
+opens, so pressing Don't know plays the word immediately instead of
 waiting for the phone's text-to-speech engine. CI records any new words
 automatically before building; to do it locally:
 
