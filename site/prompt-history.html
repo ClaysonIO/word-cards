@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f1e7">
+  <title>Prompt History</title>
+  <meta name="description" content="Every prompt used to build Word Cards with AI agents, grouped by conversation.">
+  <link rel="icon" href="icon.png">
+  <style>
+    @font-face {
+      font-family: "Didact Gothic";
+      src: url("fonts/didact-gothic.woff2") format("woff2");
+      font-weight: 400;
+      font-display: swap;
+    }
+    :root {
+      --bg: #f6f1e7;
+      --ink: #1d1d1b;
+      --muted: #5c574d;
+      --card: #ffffff;
+      --line: #e4dccb;
+      --yellow: #ecc94b;
+      --fox: #f08a3c;
+      --accent: #c25a14;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1a17;
+        --ink: #f3eee4;
+        --muted: #b5ad9f;
+        --card: #26231f;
+        --line: #3a352e;
+        --accent: #f5a565;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Didact Gothic", "Century Gothic", system-ui, sans-serif;
+      font-size: 1.1rem;
+      line-height: 1.55;
+    }
+    a { color: var(--accent); }
+    main { max-width: 880px; margin: 0 auto; padding: 0 16px 48px; }
+
+    h1 { font-size: clamp(2.2rem, 6vw, 3rem); font-weight: 400; margin: 48px 0 8px; line-height: 1.1; }
+    .intro { color: var(--muted); margin: 0 0 32px; }
+    .conversation {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+    .conversation h2 { font-weight: 400; font-size: 1.4rem; margin: 0; }
+    .conversation .meta { color: var(--muted); font-size: .95rem; margin: 2px 0 12px; }
+    ol.prompts { list-style: none; margin: 0; padding: 0; }
+    ol.prompts li { border-top: 1px solid var(--line); padding: 12px 0; }
+    ol.prompts li:first-child { border-top: none; }
+    ol.prompts time, ol.prompts .agent { color: var(--muted); font-size: .85rem; }
+    ol.prompts .agent { margin-left: 8px; }
+    ol.prompts p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1rem; }
+    footer {
+      border-top: 1px solid var(--line);
+      margin-top: 56px; padding-top: 20px;
+      color: var(--muted); font-size: .95rem;
+      display: flex; flex-wrap: wrap; gap: 8px 20px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Prompt history</h1>
+  <p class="intro">Word Cards was built by AI agents. These are all of the prompts that built it, grouped by conversation, oldest first. <a href="./">Back to Word Cards</a></p>
+
+  <section class="conversation">
+    <h2>Spaced repetition app for children</h2>
+    <p class="meta">Claude Code (Android app) · 2026-10-10 · <a href="https://claude.ai/code/session_01FN8R9GfS3g3Fum2QZutzPU">session</a></p>
+    <ol class="prompts">
+      <li><time datetime="2026-10-10T13:35:05Z">13:35 UTC</time><p>Make a basic spaced repetition app. It should have sets of colored words. For our first set we&#x27;re going to have yellow words in the format that you see in the attached image. These should have the standard set of spaced repetition features, like the ability to click and say &quot;success&quot;, &quot;not success&quot;, or &quot;easy&quot;, &quot;hard&quot;, etc., sort of like anki
+
+It&#x27;s important that the interface be very simple and easy to use as this will be used by young children. 
+
+It&#x27;s also important that in the future I be able to add in updated words and the color of the words so make those relatively easy to configure. This should also be made into an Android app using Capacitor. 
+
+Here&#x27;s a list of the words that should go in the first iteration:
+- make
+- like
+- would
+- up
+- right
+- to
+- about
+- many
+- them
+- other
+- out
+- then
+- will
+- see
+- look
+- time
+- into
+- more
+- go
+- him
+- her
+- these
+- some
+- has
+ 
+The hint side of each flashcard should be text-to-speech so that the child can learn what the word is actually pronounced as. 
+
+Build the application using GitHub Actions and provide me with the URL so that I can download it. For this we will also need a key so we can repeat the install in the future without completely updating the application. This key: please generate it and commit it to the repository.
+
+This is normally not best practice but this is a one-off standalone application for quick experimentation so it is okay for you to generate the key (so that it can be regenerated in the future) and commit that to the repository.
+
+Alternatively you can save it to the repository using repository secrets. Instead of putting it into the repository itself, please add it as a secret in the repository build pipeline.
+
+[image attached]</p></li>
+      <li><time datetime="2026-10-10T13:45:17Z">13:45 UTC</time><p>Create a new icon,  and make it as quick as possible to open. No splash screen if possible. 
+
+The icon should have something about colors and words. Maybe something with a rainbow and a letter or ABC, something like that. 
+
+Add in voice recognition and make it so that, based on how long it takes to say the word and how it preselects what the situation should be:
+- If they say it within 1 or 2 seconds, then it is strongly, very good.
+- If it takes a little while but they get it, maybe they have to try a few times, then it&#x27;s not as good.
+- If they don&#x27;t get it at all after 15 seconds, then it is not successful.
+ 
+Research various on-device libraries that we could use and decide what the best one for listening to children would be. Again it does need to be fully on-device. If there&#x27;s anything that&#x27;s focused on children, that&#x27;s great. If there&#x27;s not, then that&#x27;s okay. English only is important. No need for other languages. 
+
+When you&#x27;re done give me the link to the APK.</p></li>
+      <li><time datetime="2026-10-10T13:46:14Z">13:46 UTC</time><p>Different from spaced repetition standard Anki format, we want them to be able to start with reading the entire set of words and also allow them to practice quite a bit. We&#x27;re not going to get to the very end and then stop and then say, &quot;You&#x27;re done for the next day.&quot; Instead maybe have it so that it is easily resettable so that we still keep the priority but they can continue repeating their hard words at a reasonable frequency.</p></li>
+      <li><time datetime="2026-10-10T14:04:14Z">14:04 UTC</time><p>The audio isn&#x27;t playing. The voice recognition isn&#x27;t happening. There&#x27;s no popup asking for audio input. 
+
+We want the interface to be very simple so that, for a child, they should be able to do this entirely hands-free. After choosing yellow words, for example, they then just sit there, read the words as they pop up on the screen, and then it automatically, based on how they read it, goes to the next card, rates it as one of the options, and then moves on to the next card.
+
+We should also, on that main page, see the buttons for them to decide: Was this easy, hard, etc.? We don&#x27;t want them to have to flip the card over like a traditional flashcard because these are really one-sided flashcards. It&#x27;s just reading, sight word comprehension, just helping them make sure that they see the word and know what it is.</p></li>
+      <li><time datetime="2026-10-10T14:45:36Z">14:45 UTC</time><p>How can i create these keystore values on my phone?</p></li>
+      <li><time datetime="2026-10-10T17:21:25Z">17:21 UTC</time><p>I&#x27;ve done option 2. Can I set up a github action that will automatically push new releases to Google play store? Or does that require manual intervention?
+
+I also have capgo, if that would make it possible</p></li>
+      <li><time datetime="2026-10-10T17:28:24Z">17:28 UTC</time><p>Not right now. Merge this to main. Add an mit license file</p></li>
+    </ol>
+  </section>
+
+  <section class="conversation">
+    <h2>Audio app UI improvements</h2>
+    <p class="meta">Claude Code (Android app) · 2026-10-10 · <a href="https://claude.ai/code/session_01YAeQJPTrgHuQZQ79KxADxf">session</a></p>
+    <ol class="prompts">
+      <li><time datetime="2026-10-10T17:35:08Z">17:35 UTC</time><p>We need to pre-save all of the audio for the words. Right now it takes about 5-10 seconds from pressing the button to the sound playing and it should be instant. 
+
+Also simplify the buttons at the bottom. Instead of having all of the ones for how good things are doing, just have a single &quot;Don&#x27;t know&quot; button at the bottom. We will do the guesses as to how well they know the word entirely based on them speaking to it.
+
+Create a small character of some sort in the bottom right corner that defaults into an excited waiting phase. When the person gets the word right have it smile and celebrate, maybe wave its arms. When they have to press &quot;Don&#x27;t know&quot; give them a sad but encouraging look.
+
+Make the character somewhat fox-like and name it Ember.</p></li>
+      <li><time datetime="2026-10-10T18:10:46Z">18:10 UTC</time><p>Merge to main</p></li>
+    </ol>
+  </section>
+
+  <section class="conversation">
+    <h2>Child lock mode feature</h2>
+    <p class="meta">Claude Code (Android app) · 2026-10-10 · <a href="https://claude.ai/code/session_01RWtPd8n2cn8xPmt4NH99rJ">session</a></p>
+    <ol class="prompts">
+      <li><time datetime="2026-10-10T18:25:38Z">18:25 UTC</time><p>Netflix has a lock mode when you&#x27;re viewing videos that makes it so you don&#x27;t accidentally leave the app. I think it&#x27;s called Kid Mode or something. I&#x27;d like to have a similar feature within this app so that when I hand the phone over to my child, they cannot then switch into another application until I come in and put in a password for example. Can this be done?</p></li>
+      <li><time datetime="2026-10-10T18:29:30Z">18:29 UTC</time><p>Yes, build option 2. Put the lock/unlock option on the home screen only.</p></li>
+    </ol>
+  </section>
+
+  <section class="conversation">
+    <h2>Avatar word bubbles and muted mic UX</h2>
+    <p class="meta">Claude Code (Android app) · 2026-10-10 · <a href="https://claude.ai/code/session_01ERi7HFsWfjhipqwnHV44V6">session</a></p>
+    <ol class="prompts">
+      <li><time datetime="2026-10-10T18:27:04Z">18:27 UTC</time><p>The avatar does not need to have a word bubble saying anything because the kids are not old enough to read the words that are in them.
+
+Also when the microphone button in the top right is muted, make it more obvious: a red circle with a cross through it. Give a button that says &quot;Got it&quot; or something like that at the bottom as a new option because right now if the microphone is off, there&#x27;s no way to move on to the next card. If the microphone is on we don&#x27;t want to have a button that is distracting.</p></li>
+    </ol>
+  </section>
+
+  <section class="conversation">
+    <h2>App UI and feature improvements</h2>
+    <p class="meta">Claude Code (Android app) · 2026-10-10 · <a href="https://claude.ai/code/session_01Lr1iGRfADBUJdZaqTXbCgo">session</a></p>
+    <ol class="prompts">
+      <li><time datetime="2026-10-10T19:21:49Z">19:21 UTC</time><p>Improve landscape mode, so that the word takes up more of the vertical space. Make the countdown vertical in that mode. 
+
+Add user profiles on the home page, so we can have multiple users with their own word progress 
+
+Put the microphone icon on the home page, not the study page. 
+
+Stop the timer when the app isn&#x27;t in the foreground</p></li>
+      <li><time datetime="2026-10-10T19:27:25Z">19:27 UTC</time><p>Add a customizable setting per user to configure the timer length for listening.</p></li>
+      <li><time datetime="2026-10-10T19:39:06Z">19:39 UTC</time><p>Add a profile setting for putting the buttons on the left or right when in landscape mode</p></li>
+      <li><time datetime="2026-10-10T19:42:00Z">19:42 UTC</time><p>Remove the audio button on the card.  Pressing i don&#x27;t know will be our way to play it.
+
+The kids can&#x27;t read. Change the two buttons ( I don&#x27;t know, etc) to have clear iconography-- smile and confused shrug with question marks</p></li>
+      <li><time datetime="2026-10-10T19:43:00Z">19:43 UTC</time><p>create a PR</p></li>
+    </ol>
+  </section>
+
+  <section class="conversation">
+    <h2>Avatar style variants</h2>
+    <p class="meta">Claude Code (Android app) · 2026-10-10 · <a href="https://claude.ai/code/session_011N6bHCvDnY1DZMeRjt53sA">session</a></p>
+    <ol class="prompts">
+      <li><time datetime="2026-10-10T19:44:17Z">19:44 UTC</time><p>Create four new versions of our avatar in different styles (for example, pixelated, manga, a variant of the current, and something else). All are still foxes. Make it so that we can set these per profile.</p></li>
+      <li><time datetime="2026-10-10T19:51:26Z">19:51 UTC</time><p>Create a distinct settings page for all settings of the current profile,  instead of putting them on the home page. Access it from the home page</p></li>
+      <li><time datetime="2026-10-10T19:54:03Z">19:54 UTC</time><p>Put the screen lock button here
+
+[image attached]</p></li>
+    </ol>
+  </section>
+
+  <section class="conversation">
+    <h2>GitHub pages web setup</h2>
+    <p class="meta">Claude Code (Android app) · 2026-10-12 · <a href="https://claude.ai/code/session_01MWfNUJz3kMdVo5CpCdk5KV">session</a></p>
+    <ol class="prompts">
+      <li><time datetime="2026-10-12T16:12:37Z">16:12 UTC</time><p>Create a web page for this, and publish it to github pages.
+
+Auto create releases in github on a successful build in main.
+
+Link to the releases page from the web page</p></li>
+    </ol>
+  </section>
+
+  <section class="conversation">
+    <h2>AI-generated content disclosure</h2>
+    <p class="meta">Claude Code (Android app) · 2026-10-12 · <a href="https://claude.ai/code/session_01MRkHRA93u6sxGjzdGXJEwa">session</a></p>
+    <ol class="prompts">
+      <li><time datetime="2026-10-12T16:22:26Z">16:22 UTC</time><p>Add a note to the bottom of the page that this is AI generated slop, built with Claude Code because building new was more efficient than finding an alternative, especially since I knew what I wanted.</p></li>
+      <li><time datetime="2026-10-12T16:24:48Z">16:24 UTC</time><p>Also, add a page called &#x27;Prompt history&#x27;, and store all of the prompts that I used in this repository. Add an agents.md to automatically update that document after every user prompt.
+
+Include the agent used for each prompt. Group prompts by conversation.</p></li>
+      <li><time datetime="2026-10-12T16:25:20Z">16:25 UTC</time><p>Put the link to that in the Ai slop warning</p></li>
+    </ol>
+  </section>
+
+  <footer>
+    <a href="./">Word Cards</a>
+    <a href="https://github.com/ClaysonIO/word-cards">Source on GitHub</a>
+  </footer>
+</main>
+</body>
+</html>
