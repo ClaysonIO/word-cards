@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f1e7">
+  <title>Word Cards</title>
+  <meta name="description" content="A simple, offline sight-word flashcard app for young readers. Kids read each word out loud and the app listens on the device.">
+  <link rel="icon" href="icon.png">
+  <style>
+    @font-face {
+      font-family: "Didact Gothic";
+      src: url("fonts/didact-gothic.woff2") format("woff2");
+      font-weight: 400;
+      font-display: swap;
+    }
+    :root {
+      --bg: #f6f1e7;
+      --ink: #1d1d1b;
+      --muted: #5c574d;
+      --card: #ffffff;
+      --line: #e4dccb;
+      --yellow: #ecc94b;
+      --fox: #f08a3c;
+      --accent: #c25a14;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1a17;
+        --ink: #f3eee4;
+        --muted: #b5ad9f;
+        --card: #26231f;
+        --line: #3a352e;
+        --accent: #f5a565;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Didact Gothic", "Century Gothic", system-ui, sans-serif;
+      font-size: 1.1rem;
+      line-height: 1.55;
+    }
+    a { color: var(--accent); }
+    main { max-width: 880px; margin: 0 auto; padding: 0 16px 48px; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+      padding: 56px 0 32px;
+    }
+    .hero h1 { font-size: clamp(2.4rem, 7vw, 3.6rem); font-weight: 400; margin: 0 0 8px; line-height: 1.1; }
+    .hero p { margin: 0 0 24px; color: var(--muted); font-size: 1.25rem; max-width: 34em; }
+    .hero .stage { position: relative; width: 230px; }
+    .wordcard {
+      width: 200px; aspect-ratio: 3 / 2;
+      display: grid; place-items: center;
+      background: var(--yellow); color: #1d1d1b;
+      border-radius: 22px;
+      font-size: 3.4rem;
+      box-shadow: 0 10px 0 rgba(0,0,0,.12);
+      transform: rotate(-4deg);
+    }
+    .fox { position: absolute; right: -14px; bottom: -46px; width: 96px; }
+    .fox .e-eyes-open, .fox .e-eyes-sad, .fox .e-mouth-wait, .fox .e-mouth-sad { display: none; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 22px;
+      border-radius: 999px;
+      font-size: 1.15rem;
+      text-decoration: none;
+      border: 2px solid var(--ink);
+      color: var(--ink);
+    }
+    .btn.primary { background: var(--fox); border-color: var(--fox); color: #1d1d1b; }
+    .btn:hover { filter: brightness(1.05); }
+    .version { font-size: .95rem; color: var(--muted); margin-top: 10px; min-height: 1.5em; }
+
+    h2 { font-weight: 400; font-size: 1.9rem; margin: 48px 0 16px; }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .feature {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 20px;
+    }
+    .feature .emoji { font-size: 1.8rem; }
+    .feature h3 { font-weight: 400; font-size: 1.3rem; margin: 6px 0 4px; }
+    .feature p { margin: 0; color: var(--muted); font-size: 1rem; }
+
+    table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 14px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 1rem; }
+    th { font-weight: 400; color: var(--muted); }
+    tr:last-child td { border-bottom: none; }
+
+    ol.steps { padding-left: 1.3em; }
+    ol.steps li { margin-bottom: 8px; }
+
+    footer {
+      border-top: 1px solid var(--line);
+      margin-top: 56px; padding-top: 20px;
+      color: var(--muted); font-size: .95rem;
+      display: flex; flex-wrap: wrap; gap: 8px 20px;
+    }
+
+    @media (max-width: 640px) {
+      .hero { grid-template-columns: 1fr; padding-top: 32px; }
+      .hero .stage { order: -1; margin: 0 auto 32px; }
+      .btn { flex: 1 1 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div>
+      <h1>Word Cards</h1>
+      <p>Sight-word flashcards for young readers. Your child reads each word out loud, the phone listens, and the cards adapt to the words they find hard. No ads, no accounts, no internet needed.</p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/ClaysonIO/word-cards/releases/latest/download/word-cards.apk">⬇ Download for Android</a>
+        <a class="btn" href="https://github.com/ClaysonIO/word-cards/releases">All releases</a>
+      </div>
+      <div class="version" id="version"></div>
+    </div>
+    <div class="stage" aria-hidden="true">
+      <div class="wordcard">like</div>
+      <svg class="fox" viewBox="0 0 120 140">
+  const classic = `
+    <g class="e-tail">
+      <path d="M80 116 C104 116 120 96 114 70 C111 60 101 58 98 66 C104 82 96 100 74 104 Z" fill="#f08a3c"/>
+      <path d="M114 70 C111 60 101 58 98 66 C100 72 106 76 114 70 Z" fill="#fff4e6"/>
+    </g>
+    <g class="e-body">
+      <ellipse cx="60" cy="110" rx="26" ry="23" fill="#f08a3c"/>
+      <ellipse cx="60" cy="115" rx="15" ry="16" fill="#fff4e6"/>
+      <ellipse cx="47" cy="132" rx="9" ry="5" fill="#5b3a29"/>
+      <ellipse cx="73" cy="132" rx="9" ry="5" fill="#5b3a29"/>
+      <g class="e-arm e-arm-l">
+        <line x1="40" y1="100" x2="34" y2="118" stroke="#e2782c" stroke-width="9" stroke-linecap="round"/>
+        <circle cx="34" cy="118" r="5" fill="#5b3a29"/>
+      </g>
+      <g class="e-arm e-arm-r">
+        <line x1="80" y1="100" x2="86" y2="118" stroke="#e2782c" stroke-width="9" stroke-linecap="round"/>
+        <circle cx="86" cy="118" r="5" fill="#5b3a29"/>
+      </g>
+    </g>
+    <g class="e-head">
+      <g class="e-ear e-ear-l">
+        <path d="M33 54 L30 16 L56 38 Z" fill="#f08a3c"/>
+        <path d="M36 46 L34 25 L49 38 Z" fill="#5b3a29"/>
+      </g>
+      <g class="e-ear e-ear-r">
+        <path d="M87 54 L90 16 L64 38 Z" fill="#f08a3c"/>
+        <path d="M84 46 L86 25 L71 38 Z" fill="#5b3a29"/>
+      </g>
+      <path d="M28 58 C28 40 43 31 60 31 C77 31 92 40 92 58 C92 73 77 86 60 87 C43 86 28 73 28 58 Z" fill="#f08a3c"/>
+      <path d="M31 63 C41 64 51 68 60 79 C69 68 79 64 89 63 C87 77 74 87 60 87 C46 87 33 77 31 63 Z" fill="#fff4e6"/>
+      <ellipse class="e-blush" cx="40" cy="70" rx="5" ry="3" fill="#ff8fa3"/>
+      <ellipse class="e-blush" cx="80" cy="70" rx="5" ry="3" fill="#ff8fa3"/>
+      <g class="e-eyes-open">
+        <circle cx="47" cy="57" r="5.5" fill="#2b1d16"/>
+        <circle cx="73" cy="57" r="5.5" fill="#2b1d16"/>
+        <circle cx="49" cy="55" r="1.8" fill="#fff"/>
+        <circle cx="75" cy="55" r="1.8" fill="#fff"/>
+      </g>
+      <g class="e-eyes-happy" fill="none" stroke="#2b1d16" stroke-width="3.2" stroke-linecap="round">
+        <path d="M41 59 Q47 50 53 59"/>
+        <path d="M67 59 Q73 50 79 59"/>
+      </g>
+      <g class="e-eyes-sad">
+        <circle cx="47" cy="59" r="4.5" fill="#2b1d16"/>
+        <circle cx="73" cy="59" r="4.5" fill="#2b1d16"/>
+        <circle cx="48.5" cy="57.5" r="1.6" fill="#fff"/>
+        <circle cx="74.5" cy="57.5" r="1.6" fill="#fff"/>
+        <path d="M40 51 L52 47 M80 51 L68 47" stroke="#5b3a29" stroke-width="2.6" stroke-linecap="round"/>
+      </g>
+      <ellipse cx="60" cy="74" rx="4.5" ry="3.2" fill="#2b1d16"/>
+      <path class="e-mouth-wait" d="M54 79 Q60 86 66 79 Z" fill="#7a2e1e"/>
+      <g class="e-mouth-happy">
+        <path d="M51 78 Q60 92 69 78 Z" fill="#7a2e1e"/>
+        <path d="M55 84 Q60 89 65 84 Q60 82 55 84 Z" fill="#ff8fa3"/>
+      </g>
+      <path class="e-mouth-sad" d="M55 81 Q60 84 65 81" fill="none" stroke="#2b1d16" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+    <g class="e-sparkles" fill="#ffd23f">
+      <path d="M14 30 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z"/>
+      <path d="M104 22 l2.5 5.5 5.5 2.5 -5.5 2.5 -2.5 5.5 -2.5 -5.5 -5.5 -2.5 5.5 -2.5 Z"/>
+      <path d="M108 100 l2 4 4 2 -4 2 -2 4 -2 -4 -4 -2 4 -2 Z"/>
+    </g>
+      </svg>
+    </div>
+  </section>
+
+  <h2>How it works</h2>
+  <div class="features">
+    <div class="feature">
+      <div class="emoji">🎤</div>
+      <h3>Hands-free</h3>
+      <p>Pick a color and just read. Speech recognition runs on the phone, so nothing is sent anywhere.</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">🔁</div>
+      <h3>Spaced repetition</h3>
+      <p>Missed words come back a few cards later. Words they already know show up less often.</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">🦊</div>
+      <h3>Ember the fox</h3>
+      <p>Ember cheers when a word is read right. Each reader can pick their own fox: Ember, Snowy, Pixel, Manga or Origami.</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">🤷</div>
+      <h3>Made for non-readers</h3>
+      <p>The buttons are pictures. Tap 🤷 to hear the word. Every word is pre-recorded, so it plays right away.</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">👧👦</div>
+      <h3>Several readers</h3>
+      <p>Each child gets their own progress, fox and listening time.</p>
+    </div>
+    <div class="feature">
+      <div class="emoji">🔒</div>
+      <h3>Kid lock</h3>
+      <p>Pins the app with a grown-up PIN, so the child can't wander off into other apps.</p>
+    </div>
+  </div>
+
+  <h2>Grading from how they read</h2>
+  <table>
+    <tr><th>When the child…</th><th>The card counts as</th></tr>
+    <tr><td>reads it within ~2.5 s on the first try</td><td>Easy</td></tr>
+    <tr><td>reads it within ~6 s, at most one wrong try</td><td>Good</td></tr>
+    <tr><td>gets there eventually</td><td>Hard</td></tr>
+    <tr><td>doesn't say it in time, or taps 🤷</td><td>Again: the word is read aloud</td></tr>
+  </table>
+
+  <h2>Install</h2>
+  <ol class="steps">
+    <li>On the Android phone, tap <a href="https://github.com/ClaysonIO/word-cards/releases/latest/download/word-cards.apk">Download for Android</a>.</li>
+    <li>Open the downloaded <code>word-cards.apk</code>. If Android asks, allow your browser to install apps.</li>
+    <li>To update, install the newer APK from the <a href="https://github.com/ClaysonIO/word-cards/releases">releases page</a> over the old one. Progress is kept.</li>
+  </ol>
+
+  <footer>
+    <span>MIT licensed</span>
+    <a href="https://github.com/ClaysonIO/word-cards">Source on GitHub</a>
+    <a href="https://github.com/ClaysonIO/word-cards/releases">Releases</a>
+  </footer>
+</main>
+<script>
+  // Show the latest version under the download button (best effort).
+  fetch("https://api.github.com/repos/ClaysonIO/word-cards/releases/latest")
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(rel => {
+      const date = new Date(rel.published_at).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+      const el = document.getElementById("version");
+      el.textContent = "Latest: " + rel.name + " · " + date;
+    })
+    .catch(() => {});
+</script>
+</body>
+</html>

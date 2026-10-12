@@ -99,7 +99,11 @@ A word without a recording falls back to the phone's text-to-speech.
 
 ## Download
 
-Latest APK: `https://github.com/ClaysonIO/simple-spaced-repetition/releases/latest/download/word-cards.apk`
+Web page: **https://claysonio.github.io/word-cards/** (source in `site/`,
+deployed to GitHub Pages by `.github/workflows/pages.yml` on every push to
+main that touches it).
+
+Latest APK: `https://github.com/ClaysonIO/word-cards/releases/latest/download/word-cards.apk`
 
 Each build is published as a GitHub Release (`v1.0.<run number>`) with an
 increasing version code, so it installs as an update over the previous one.
