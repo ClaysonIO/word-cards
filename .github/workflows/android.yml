@@ -2,7 +2,8 @@ name: Build Android APK
 
 on:
   push:
-    branches: [main, master, ccr-eb2e784e-6s5cdt]
+    branches: [main]
+  pull_request:       # build check only; releases come from main
   workflow_dispatch:
 
 permissions:
@@ -91,8 +92,9 @@ jobs:
           name: word-cards-apk
           path: word-cards.apk
 
+      # Only a successful build of main becomes a release.
       - name: Publish GitHub Release
-        if: steps.keystore.outputs.signed == 'true'
+        if: steps.keystore.outputs.signed == 'true' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
