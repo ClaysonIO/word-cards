@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f1e7">
+  <title>Prompt History</title>
+  <meta name="description" content="Every prompt used to build Word Cards with AI agents, grouped by conversation.">
+  <link rel="icon" href="icon.png">
+  <style>
+    @font-face {
+      font-family: "Didact Gothic";
+      src: url("fonts/didact-gothic.woff2") format("woff2");
+      font-weight: 400;
+      font-display: swap;
+    }
+    :root {
+      --bg: #f6f1e7;
+      --ink: #1d1d1b;
+      --muted: #5c574d;
+      --card: #ffffff;
+      --line: #e4dccb;
+      --yellow: #ecc94b;
+      --fox: #f08a3c;
+      --accent: #c25a14;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1a17;
+        --ink: #f3eee4;
+        --muted: #b5ad9f;
+        --card: #26231f;
+        --line: #3a352e;
+        --accent: #f5a565;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Didact Gothic", "Century Gothic", system-ui, sans-serif;
+      font-size: 1.1rem;
+      line-height: 1.55;
+    }
+    a { color: var(--accent); }
+    main { max-width: 880px; margin: 0 auto; padding: 0 16px 48px; }
+
+    h1 { font-size: clamp(2.2rem, 6vw, 3rem); font-weight: 400; margin: 48px 0 8px; line-height: 1.1; }
+    .intro { color: var(--muted); margin: 0 0 32px; }
+    .conversation {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 20px;
+      margin-bottom: 20px;
+    }
+    .conversation h2 { font-weight: 400; font-size: 1.4rem; margin: 0; }
+    .conversation .meta { color: var(--muted); font-size: .95rem; margin: 2px 0 12px; }
+    ol.prompts { list-style: none; margin: 0; padding: 0; }
+    ol.prompts li { border-top: 1px solid var(--line); padding: 12px 0; }
+    ol.prompts li:first-child { border-top: none; }
+    ol.prompts time, ol.prompts .agent { color: var(--muted); font-size: .85rem; }
+    ol.prompts .agent { margin-left: 8px; }
+    ol.prompts p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1rem; }
+    footer {
+      border-top: 1px solid var(--line);
+      margin-top: 56px; padding-top: 20px;
+      color: var(--muted); font-size: .95rem;
+      display: flex; flex-wrap: wrap; gap: 8px 20px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Prompt history</h1>
+  <p class="intro">Word Cards was built by AI agents. These are all of the prompts that built it, grouped by conversation, oldest first. <a href="./">Back to Word Cards</a></p>
+
+<!-- CONVERSATIONS -->
+
+  <footer>
+    <a href="./">Word Cards</a>
+    <a href="https://github.com/ClaysonIO/word-cards">Source on GitHub</a>
+  </footer>
+</main>
+</body>
+</html>
