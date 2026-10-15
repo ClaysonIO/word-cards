@@ -32,7 +32,8 @@
   // Progress of the current profile:
   // state = {
   //   cards:  { "<setId>:<word>": { box 0-5, lapses, seen, skipped, last } },
-  //   rounds: { "<setId>": { queue: [{ w: "make", again: 0, hard: 0 }], total } },
+  //   rounds: { "<setId>": { queue: [{ w: "make", again: 0, hard: 0 }], total, right } },
+  //           right = words read on the first try this round (for the stars)
   //   turn:   number of cards shown so far (used for "last seen")
   // }
   function load() {
@@ -101,7 +102,7 @@
       const c = card(set, t);
       if (c) c.skipped = picked.includes(t) ? 0 : (c.skipped || 0) + 1;
     }
-    state.rounds[set.id] = { queue: picked.map((w) => ({ w, again: 0, hard: 0 })), total: picked.length };
+    state.rounds[set.id] = { queue: picked.map((w) => ({ w, again: 0, hard: 0 })), total: picked.length, right: 0 };
     save();
     return state.rounds[set.id];
   }
@@ -111,7 +112,18 @@
     if (!r) return null;
     // Drop words that were removed from words.js.
     r.queue = r.queue.filter((q) => findWord(set, q.w) !== undefined);
+    // Rounds saved before stars existed: count the words already done as right.
+    if (r.right === undefined) r.right = Math.max(0, r.total - wordsLeft(r));
     return r.queue.length ? r : null;
+  }
+
+  // Different words still to go (a struggled word can be in the queue twice).
+  const wordsLeft = (r) => new Set(r.queue.map((q) => q.w)).size;
+
+  // 1 to 3 stars for a finished round, by how many words were read first time.
+  function starsFor(r) {
+    const frac = r.total ? Math.min(1, (r.right || 0) / r.total) : 1;
+    return frac >= 0.9 ? 3 : frac >= 0.6 ? 2 : 1;
   }
 
   function rateCard(set, text, rating) {
@@ -289,7 +301,8 @@
   function showCard() {
     endTurn();
     const item = session.round.queue[0];
-    if (!item) { show("done"); return; }
+    updateProgress();
+    if (!item) { celebrate(); return; }
     $("timefill").style.setProperty("--time-left", "1");
     turn = { item, limit: listenSeconds() * 1000, t0: performance.now(), elapsed: 0, hit: 0, misses: 0, timer: 0, raf: 0, done: false, listening: false };
     $("card").classList.remove("correct", "missed");
@@ -297,8 +310,18 @@
     $("gotIt").disabled = false;
     ember("wait");
     $("word").textContent = item.w;
-    $("left").textContent = `${session.round.queue.length} left`;
     listen();
+  }
+
+  function updateProgress() {
+    const r = session.round;
+    const done = r.total - wordsLeft(r);
+    const bar = $("progress");
+    $("progressFill").style.setProperty("--progress", String(r.total ? done / r.total : 1));
+    bar.setAttribute("aria-valuemax", String(r.total));
+    bar.setAttribute("aria-valuenow", String(done));
+    bar.setAttribute("aria-valuetext", `${done} of ${r.total} words`);
+    bar.classList.toggle("full", done >= r.total);
   }
 
   // Start (or resume) listening for the current card. The clock runs
@@ -426,6 +449,8 @@
     const q = session.round.queue;
     const item = q.shift();
     rateCard(session.set, item.w, rating);
+    // First time this word came up this round (a retry has again or hard set).
+    if (!item.again && !item.hard && rating !== "again") session.round.right = (session.round.right || 0) + 1;
     // Struggled words come back later in the same round.
     if (rating === "again" && item.again < 3) {
       item.again++;
@@ -446,6 +471,89 @@
     // Without voice nothing moves the card on by itself, so a grown-up needs
     // a "Got it" button. With voice it would only be a distraction.
     $("gotIt").hidden = voiceOn();
+  }
+
+  // ---------- Celebration (end of a round) ----------
+  // The stars pop in one at a time and the fox cheers a little harder with
+  // each one: 1 star a happy bounce, 2 jumping and waving with sparkles,
+  // 3 big spinning jumps and confetti. The buttons appear once it's over.
+  const STAR_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2l2.95 6.1 6.7.95-4.85 4.7 1.15 6.65L12 17.45 6.05 20.6 7.2 13.95 2.35 9.25l6.7-.95z"/></svg>';
+  const STAR_FIRST = 600, STAR_GAP = 700;   // ms; matches the delays in style.css
+  const TITLES = ["", "Good try!", "Great job!", "Amazing!"];
+  let cheerTimers = [];
+
+  function chime(n) {
+    const ctx = audio();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    [0, 0.09].forEach((dt, i) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = [660, 784, 988][n] * (i ? 1.5 : 1);
+      gain.gain.setValueAtTime(0.0001, t + dt);
+      gain.gain.exponentialRampToValueAtTime(0.25, t + dt + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dt + 0.45);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t + dt);
+      osc.stop(t + dt + 0.5);
+    });
+  }
+
+  function cheer(level) {
+    const el = $("doneFox");
+    el.classList.remove("wait", "cheer-1", "cheer-2", "cheer-3");
+    void el.offsetWidth;                         // restart the animations
+    el.classList.add(level ? `cheer-${level}` : "wait");
+  }
+
+  function confetti(count) {
+    const box = $("confetti");
+    const colors = ["#f08a3c", "#ffd23f", "#4ade80", "#7cc6f3", "#ff8fa3", "#b794f4"];
+    for (let i = 0; i < count; i++) {
+      const c = document.createElement("i");
+      c.style.left = `${Math.random() * 100}%`;
+      c.style.background = colors[i % colors.length];
+      c.style.animationDelay = `${Math.random() * 0.8}s`;
+      c.style.animationDuration = `${2.2 + Math.random() * 1.8}s`;
+      c.style.setProperty("--drift", `${(Math.random() - 0.5) * 160}px`);
+      c.style.setProperty("--spin", `${(Math.random() < 0.5 ? -1 : 1) * (360 + Math.random() * 720)}deg`);
+      box.appendChild(c);
+    }
+  }
+
+  function stopCelebrating() {
+    cheerTimers.forEach(clearTimeout);
+    cheerTimers = [];
+    $("confetti").innerHTML = "";
+  }
+
+  function celebrate() {
+    stopCelebrating();
+    const stars = starsFor(session.round);
+    const box = $("stars");
+    box.innerHTML = "";
+    box.setAttribute("aria-label", `${stars} of 3 stars`);
+    for (let i = 0; i < 3; i++) {
+      const s = document.createElement("span");
+      s.className = "star" + (i < stars ? " earned" : "");
+      s.style.setProperty("--i", String(i));
+      s.innerHTML = STAR_SVG;
+      box.appendChild(s);
+    }
+    $("doneFox").innerHTML = foxSvg(avatar());
+    $("doneTitle").textContent = TITLES[stars];
+    $("done").style.setProperty("--stars", String(stars));
+    cheer(0);
+    show("done");
+    for (let i = 0; i < stars; i++) {
+      cheerTimers.push(setTimeout(() => {
+        if ($("done").hidden) return;
+        chime(i);
+        cheer(i + 1);
+        if (i === 1) confetti(stars === 2 ? 24 : 0);
+        if (i === 2) confetti(60);
+      }, STAR_FIRST + i * STAR_GAP));
+    }
   }
 
   // ---------- Kid lock (Android screen pinning) ----------
@@ -675,8 +783,9 @@
   // ---------- Screens ----------
   function show(name) {
     for (const s of ["home", "settings", "study", "done"]) $(s).hidden = s !== name;
-    $("ember").hidden = name === "home" || name === "settings";
-    if (name === "done") ember("happy");
+    // The done screen has its own big fox in the middle.
+    $("ember").hidden = name !== "study";
+    if (name !== "done") stopCelebrating();
   }
 
   function renderHome() {

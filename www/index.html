@@ -81,7 +81,11 @@
   <section id="study" class="screen" hidden>
     <header class="topbar">
       <button id="homeBtn" class="icon-btn" type="button" aria-label="Home">🏠</button>
-      <div id="left" class="left-count"></div>
+      <!-- How far through this round: fills up as words are read -->
+      <div id="progress" class="progress" role="progressbar" aria-label="Words read" aria-valuemin="0">
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <span class="progress-goal" aria-hidden="true">⭐</span>
+      </div>
       <span class="icon-spacer"></span>
     </header>
 
@@ -109,13 +113,20 @@
     </div>
   </section>
 
-  <!-- Finished -->
+  <!-- Finished: the stars earned this round pop in one by one above the
+       fox, who celebrates more with every star. -->
   <section id="done" class="screen" hidden>
-    <div class="party">🎉</div>
-    <h2 class="done-title">Great job!</h2>
-    <button id="moreBtn" class="big-btn go" type="button">Keep going ▶</button>
-    <button id="allBtn" class="big-btn secondary" type="button">All the words</button>
-    <button id="doneHome" class="big-btn secondary" type="button">🏠 Home</button>
+    <div id="confetti" class="confetti" aria-hidden="true"></div>
+    <div class="done-stage">
+      <div id="stars" class="stars" role="img"></div>
+      <div id="doneFox" class="done-fox fox wait"></div>
+      <h2 id="doneTitle" class="done-title">Great job!</h2>
+    </div>
+    <div class="done-actions">
+      <button id="moreBtn" class="big-btn go" type="button">Keep going ▶</button>
+      <button id="allBtn" class="big-btn secondary" type="button">All the words</button>
+      <button id="doneHome" class="big-btn secondary" type="button">🏠 Home</button>
+    </div>
   </section>
 
   <!-- The reader's fox: waits excitedly, celebrates, and cheers you on.
