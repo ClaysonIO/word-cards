@@ -214,7 +214,37 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   border-radius: 16px;
   width: 68px; height: 68px;
 }
-.left-count { font-size: 1.6rem; }
+
+/* Round progress: a chunky bar that fills toward a star */
+.progress {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 16px;
+  max-width: 460px;
+}
+.progress-track {
+  flex: 1;
+  height: 24px;
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  width: calc(var(--progress, 0) * 100%);
+  min-width: 0;
+  border-radius: 999px;
+  background: repeating-linear-gradient(-45deg, #4ade80 0 10px, #6ee79a 10px 20px);
+  background-size: 28px 28px;
+  transition: width .5s cubic-bezier(.3, 1.4, .5, 1);
+  animation: stripes 1s linear infinite;
+}
+.progress-goal { font-size: 2rem; line-height: 1; transition: transform .3s; }
+.progress.full .progress-goal { animation: pop .6s ease; transform: scale(1.2); }
+@keyframes stripes { to { background-position: 28px 0; } }
 .icon-spacer { width: 68px; }
 
 .card-area {
@@ -472,11 +502,115 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .fox-choice.active { background: #fde68a; }
 .fox-choice svg { display: block; width: 72px; height: auto; overflow: visible; }
 
-/* ---------- Done ---------- */
+/* ---------- Done: stars + celebrating fox ---------- */
 .big-btn.go { background: #a6e3a1; font-size: 2.2rem; }
-#done { justify-content: center; }
-.party { font-size: 7rem; animation: pop .6s ease; }
-.done-title { font-size: 3rem; font-weight: 400; margin: 10px 0 30px; }
+#done { justify-content: center; position: relative; overflow: hidden; }
+.done-stage { display: flex; flex-direction: column; align-items: center; }
+.done-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Wait for the stars before offering what's next */
+  opacity: 0;
+  animation: fade-up .5s ease forwards;
+  animation-delay: calc(.6s + var(--stars, 1) * .7s + .4s);
+}
+.done-title {
+  font-size: 3rem;
+  font-weight: 400;
+  margin: 6px 0 20px;
+  opacity: 0;
+  animation: fade-up .5s ease forwards;
+  animation-delay: calc(.6s + var(--stars, 1) * .7s);
+}
+
+.stars { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 4px; }
+.star { width: 76px; height: 76px; }
+.star:nth-child(2) { width: 100px; height: 100px; margin-bottom: 18px; }
+.star svg { width: 100%; height: 100%; overflow: visible; }
+.star path { fill: #e4dccb; stroke: #c9bea6; stroke-width: 1.4; stroke-linejoin: round; }
+.star.earned path { fill: #ffd23f; stroke: #c98a00; }
+/* Earned stars pop in one by one (delays match STAR_FIRST / STAR_GAP in app.js) */
+.star.earned svg {
+  transform: scale(0);
+  animation: star-pop .6s cubic-bezier(.3, 1.6, .5, 1) forwards, star-shine 1.6s ease-in-out infinite alternate;
+  animation-delay: calc(.6s + var(--i) * .7s), calc(1.3s + var(--i) * .7s);
+}
+.star:not(.earned) { opacity: 0; animation: fade-up .4s ease forwards; animation-delay: calc(.6s + var(--stars, 1) * .7s); }
+@keyframes star-pop {
+  0% { transform: scale(0) rotate(-120deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes star-shine {
+  from { transform: scale(1) rotate(0); filter: drop-shadow(0 0 0 rgba(255,210,63,0)); }
+  to { transform: scale(1.08) rotate(6deg); filter: drop-shadow(0 0 10px rgba(255,210,63,.9)); }
+}
+@keyframes fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.done-fox svg { display: block; width: min(52vw, 230px); height: auto; overflow: visible; }
+
+/* The fox's cheering, from a smile to a full party.
+   Faces: every cheer level uses the happy face. */
+.done-fox[class*="cheer-"] .e-eyes-open, .done-fox[class*="cheer-"] .e-mouth-wait { display: none; }
+.done-fox[class*="cheer-"] .e-eyes-happy, .done-fox[class*="cheer-"] .e-mouth-happy,
+.done-fox[class*="cheer-"] .e-blush { display: inline; }
+.done-fox.cheer-2 .e-sparkles, .done-fox.cheer-3 .e-sparkles { display: inline; }
+
+/* 1 star: a happy little bounce, tail wagging, arms swinging */
+.fox.cheer-1 svg { animation: e-bounce .7s ease-in-out infinite; }
+.fox.cheer-1 .e-tail { animation: e-wag .4s ease-in-out infinite alternate; }
+.fox.cheer-1 .e-arm-l { animation: e-swing-l .7s ease-in-out infinite alternate; }
+.fox.cheer-1 .e-arm-r { animation: e-swing-r .7s ease-in-out infinite alternate; }
+
+/* 2 stars: jumping and waving both arms, sparkles */
+.fox.cheer-2 svg { animation: e-jump .55s ease-out infinite; }
+.fox.cheer-2 .e-tail { animation: e-wag .2s ease-in-out infinite alternate; }
+.fox.cheer-2 .e-arm-l { animation: e-wave-l .3s ease-in-out infinite alternate; }
+.fox.cheer-2 .e-arm-r { animation: e-wave-r .3s ease-in-out infinite alternate; }
+.fox.cheer-2 .e-ear-l, .fox.cheer-2 .e-ear-r { animation: e-twitch .55s ease-in-out infinite; }
+.fox.cheer-2 .e-sparkles { animation: e-sparkle .5s ease-in-out infinite alternate; transform-origin: 60px 70px; }
+
+/* 3 stars: big jumps with a flip every few, wild waving, head bopping */
+.fox.cheer-3 svg { animation: e-flip 2.1s ease-in-out infinite; transform-origin: 50% 70%; }
+.fox.cheer-3 .e-tail { animation: e-wag .14s ease-in-out infinite alternate; }
+.fox.cheer-3 .e-arm-l { animation: e-wave-l .18s ease-in-out infinite alternate; }
+.fox.cheer-3 .e-arm-r { animation: e-wave-r .18s ease-in-out infinite alternate; }
+.fox.cheer-3 .e-head { animation: e-bop .35s ease-in-out infinite alternate; }
+.fox.cheer-3 .e-sparkles { animation: e-sparkle-big .35s ease-in-out infinite alternate; transform-origin: 60px 70px; }
+@keyframes e-flip {
+  0% { transform: translateY(0) scale(1.08, .9); }
+  12% { transform: translateY(-30px) scale(.95, 1.06); }
+  24% { transform: translateY(0) scale(1.08, .9); }
+  36% { transform: translateY(-30px) scale(.95, 1.06); }
+  48% { transform: translateY(0) scale(1.1, .88); }
+  70% { transform: translateY(-60px) rotate(360deg) scale(1); }
+  88% { transform: translateY(0) rotate(360deg) scale(1.1, .9); }
+  100% { transform: translateY(0) rotate(360deg) scale(1); }
+}
+@keyframes e-bop { from { transform: rotate(-8deg); } to { transform: rotate(8deg); } }
+@keyframes e-sparkle-big { from { transform: scale(.8); opacity: .7; } to { transform: scale(1.35); opacity: 1; } }
+
+/* Confetti for 2 and 3 stars (pieces are added by app.js) */
+.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.confetti i {
+  position: absolute;
+  top: -20px;
+  width: 10px;
+  height: 16px;
+  border-radius: 2px;
+  animation: confetti-fall 3s ease-in forwards;
+}
+.confetti i:nth-child(3n) { width: 12px; height: 12px; border-radius: 50%; }
+@keyframes confetti-fall {
+  from { transform: translate(0, 0) rotate(0); opacity: 1; }
+  85% { opacity: 1; }
+  to { transform: translate(var(--drift), 105vh) rotate(var(--spin)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .confetti { display: none; }
+  .star.earned svg { animation-iteration-count: 1 !important; }
+}
+
 @keyframes pop { 0% { transform: scale(.2); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
 /* Landscape phones: give the card more room */
@@ -492,6 +626,12 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   .btn-icon { font-size: 2.8rem; }
   .q { font-size: 2rem; }
   .ember svg { width: 82px; }
+  /* Done: stars and fox on the left, buttons on the right */
+  #done:not([hidden]) { flex-direction: row; justify-content: center; gap: 24px; }
+  .done-fox svg { width: auto; height: 46vh; }
+  .star { width: 52px; height: 52px; }
+  .star:nth-child(2) { width: 68px; height: 68px; margin-bottom: 12px; }
+  .done-title { font-size: 2rem; margin: 2px 0 0; }
 }
 @media (max-height: 500px) {
   .icon-spacer { width: 52px; }
@@ -523,7 +663,9 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
     gap: 10px;
   }
   .icon-spacer { display: none; }
-  .left-count { font-size: 1.4rem; }
+  .progress { flex: none; width: 100%; min-width: 104px; margin: 0; gap: 4px; }
+  .progress-track { height: 18px; }
+  .progress-goal { font-size: 1.4rem; }
   .controls {
     grid-area: ctrl;
     width: auto;
